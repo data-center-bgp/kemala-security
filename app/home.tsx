@@ -57,6 +57,20 @@ export default function HomeScreen() {
             <Text style={styles.cardIcon}>🔴</Text>
             <Text style={styles.cardTitle}>Orang Keluar</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push("/barang-masuk" as any)}
+          >
+            <Text style={styles.cardIcon}>📦</Text>
+            <Text style={styles.cardTitle}>Barang Masuk</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push("/barang-keluar" as any)}
+          >
+            <Text style={styles.cardIcon}>📤</Text>
+            <Text style={styles.cardTitle}>Barang Keluar</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Add */}
@@ -75,6 +89,20 @@ export default function HomeScreen() {
           >
             <Text style={styles.cardIcon}>➕</Text>
             <Text style={styles.cardTitleLight}>Catat Keluar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.card, styles.cardAccent]}
+            onPress={() => router.push("/barang-masuk/add" as any)}
+          >
+            <Text style={styles.cardIcon}>➕</Text>
+            <Text style={styles.cardTitleLight}>Catat Brg Masuk</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.card, styles.cardAccent]}
+            onPress={() => router.push("/barang-keluar/add" as any)}
+          >
+            <Text style={styles.cardIcon}>➕</Text>
+            <Text style={styles.cardTitleLight}>Catat Brg Keluar</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

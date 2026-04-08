@@ -18,3 +18,27 @@ export type OrangKeluar = {
   sekuriti_id: number;
   created_at?: string;
 };
+
+export type BarangMasuk = {
+  id: string;
+  tanggal: string;
+  waktu: string;
+  pengirim: string;
+  penerima: string;
+  barang: string;
+  keterangan: string;
+  sekuriti_id: number;
+  created_at?: string;
+};
+
+export type BarangKeluar = {
+  id: string;
+  tanggal: string;
+  waktu: string;
+  pemilik_barang: string;
+  tujuan: string;
+  barang: string;
+  keterangan: string;
+  sekuriti_id: number;
+  created_at?: string;
+};
