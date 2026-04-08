@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 type AuthContextType = {
   session: Session | null;
   user: User | null;
+  profileId: number | null;
   isLoading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -15,22 +16,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [profileId, setProfileId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setIsLoading(false);
+      if (!session) setIsLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (!session) {
+        setProfileId(null);
+        setIsLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    supabase
+      .from("profiles")
+      .select("id")
+      .eq("auth_user_id", session.user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setProfileId(data.id);
+        setIsLoading(false);
+      });
+  }, [session?.user?.id]);
 
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({ email, password });
@@ -54,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         session,
         user: session?.user ?? null,
+        profileId,
         isLoading,
         signUp,
         signIn,
