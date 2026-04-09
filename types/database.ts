@@ -42,3 +42,25 @@ export type BarangKeluar = {
   sekuriti_id: number;
   created_at?: string;
 };
+
+export type ListMobil = {
+  id: string;
+  nomor_plat: string;
+  brand: string;
+  nama: string;
+  tipe: string;
+  warna: string;
+  created_at?: string;
+};
+
+export type PemakaianMobil = {
+  id: string;
+  tanggal_pakai: string;
+  waktu_pakai: string;
+  mobil_id: string;
+  nama_peminjam: string;
+  keperluan: string;
+  sekuriti_id: number;
+  created_at?: string;
+  list_mobil?: ListMobil;
+};
