@@ -6,7 +6,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AddListMobil() {
   const router = useRouter();
@@ -72,6 +72,7 @@ export default function AddListMobil() {
               value={nomorPlat}
               onChangeText={setNomorPlat}
               placeholder="Contoh: B 1234 ABC"
+              placeholderTextColor="#6b7280"
               autoCapitalize="characters"
             />
           </View>
@@ -83,6 +84,7 @@ export default function AddListMobil() {
               value={brand}
               onChangeText={setBrand}
               placeholder="Contoh: Toyota"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -93,6 +95,7 @@ export default function AddListMobil() {
               value={nama}
               onChangeText={setNama}
               placeholder="Contoh: Avanza"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -103,6 +106,7 @@ export default function AddListMobil() {
               value={tipe}
               onChangeText={setTipe}
               placeholder="Contoh: MPV"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -113,6 +117,7 @@ export default function AddListMobil() {
               value={warna}
               onChangeText={setWarna}
               placeholder="Contoh: Hitam"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -134,37 +139,37 @@ export default function AddListMobil() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  container: { flex: 1, backgroundColor: "#0f1117" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
   },
   backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#11181C" },
+  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
   form: { padding: 20, gap: 18 },
   field: {},
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: "#c0c4cc",
     marginBottom: 6,
     marginLeft: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: "#3a3d47",
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "#fff",
-    color: "#11181C",
+    backgroundColor: "#1a1d27",
+    color: "#e8eaed",
   },
   submitButton: {
     backgroundColor: "#0a7ea4",

@@ -1,6 +1,7 @@
 import { Redirect, Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider, useAuth } from "@/context/auth";
 
@@ -24,9 +25,11 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StatusBar style="auto" />
-      <Slot />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <StatusBar style="light" />
+        <Slot />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

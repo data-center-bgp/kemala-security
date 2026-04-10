@@ -9,10 +9,11 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
 const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
@@ -38,6 +40,7 @@ export default function AddBarangKeluar() {
   const [barang, setBarang] = useState("");
   const [keterangan, setKeterangan] = useState("");
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -149,6 +152,29 @@ export default function AddBarangKeluar() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Modal
+        visible={!!previewImage}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalClose}
+            onPress={() => setPreviewImage(null)}
+          >
+            <Text style={styles.modalCloseText}>✕</Text>
+          </TouchableOpacity>
+          {previewImage && (
+            <Image
+              source={{ uri: previewImage }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backButton}>← Back</Text>
@@ -205,6 +231,7 @@ export default function AddBarangKeluar() {
               value={pemilikBarang}
               onChangeText={setPemilikBarang}
               placeholder="Nama pemilik barang"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -215,6 +242,7 @@ export default function AddBarangKeluar() {
               value={tujuan}
               onChangeText={setTujuan}
               placeholder="Tujuan pengiriman"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -225,6 +253,7 @@ export default function AddBarangKeluar() {
               value={barang}
               onChangeText={setBarang}
               placeholder="Nama barang"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -235,6 +264,7 @@ export default function AddBarangKeluar() {
               value={keterangan}
               onChangeText={setKeterangan}
               placeholder="Keterangan"
+              placeholderTextColor="#6b7280"
               multiline
               numberOfLines={3}
             />
@@ -242,22 +272,6 @@ export default function AddBarangKeluar() {
 
           <View style={styles.field}>
             <Text style={styles.label}>Foto</Text>
-            <View style={styles.photoRow}>
-              {photos.map((photo, index) => (
-                <View key={index} style={styles.photoThumb}>
-                  <Image
-                    source={{ uri: photo.uri }}
-                    style={styles.photoImage}
-                  />
-                  <TouchableOpacity
-                    style={styles.photoRemove}
-                    onPress={() => removePhoto(index)}
-                  >
-                    <Text style={styles.photoRemoveText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
             <View style={styles.photoButtons}>
               <TouchableOpacity style={styles.photoButton} onPress={takePhoto}>
                 <Text style={styles.photoButtonText}>📷 Kamera</Text>
@@ -266,6 +280,29 @@ export default function AddBarangKeluar() {
                 <Text style={styles.photoButtonText}>🖼️ Galeri</Text>
               </TouchableOpacity>
             </View>
+            {photos.length > 0 && (
+              <View style={styles.photoRow}>
+                {photos.map((photo, index) => (
+                  <View key={index} style={styles.photoThumbContainer}>
+                    <TouchableOpacity
+                      onPress={() => setPreviewImage(photo.uri)}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: photo.uri }}
+                        style={styles.photoImage}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.photoRemove}
+                      onPress={() => removePhoto(index)}
+                    >
+                      <Text style={styles.photoRemoveText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
 
           <TouchableOpacity
@@ -286,19 +323,19 @@ export default function AddBarangKeluar() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  container: { flex: 1, backgroundColor: "#0f1117" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
   },
   backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#11181C" },
+  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
   form: { padding: 20, gap: 18 },
   row: { flexDirection: "row", gap: 12 },
   halfField: { flex: 1 },
@@ -306,23 +343,23 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: "#c0c4cc",
     marginBottom: 6,
     marginLeft: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: "#3a3d47",
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "#fff",
-    color: "#11181C",
+    backgroundColor: "#1a1d27",
+    color: "#e8eaed",
   },
   inputText: {
     fontSize: 16,
-    color: "#11181C",
+    color: "#e8eaed",
   },
   textArea: {
     textAlignVertical: "top",
@@ -341,36 +378,59 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginBottom: 10,
+    marginTop: 12,
   },
-  photoThumb: { position: "relative" },
+  photoThumbContainer: { position: "relative" },
   photoImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: "#e5e7eb",
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    backgroundColor: "#2a2d37",
   },
   photoRemove: {
     position: "absolute",
     top: -6,
     right: -6,
     backgroundColor: "#ef4444",
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
     justifyContent: "center",
     alignItems: "center",
   },
-  photoRemoveText: { color: "#fff", fontSize: 11, fontWeight: "700" },
+  photoRemoveText: { color: "#fff", fontSize: 12, fontWeight: "700" },
   photoButtons: { flexDirection: "row", gap: 12 },
   photoButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: "#3a3d47",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
   },
-  photoButtonText: { fontSize: 14, fontWeight: "600", color: "#374151" },
+  photoButtonText: { fontSize: 14, fontWeight: "600", color: "#c0c4cc" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalClose: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCloseText: { color: "#fff", fontSize: 20, fontWeight: "700" },
+  modalImage: {
+    width: Dimensions.get("window").width - 32,
+    height: Dimensions.get("window").height * 0.7,
+  },
 });

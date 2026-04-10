@@ -5,16 +5,18 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   FlatList,
   Image,
+  Modal,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type BarangKeluarWithPhotos = BarangKeluar & {
   foto_barang_keluar?: FotoBarangKeluar[];
@@ -25,6 +27,7 @@ export default function BarangKeluarScreen() {
   const [data, setData] = useState<BarangKeluarWithPhotos[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     const { data: rows, error } = await supabase
@@ -104,11 +107,16 @@ export default function BarangKeluarScreen() {
           contentContainerStyle={styles.photoScrollContent}
         >
           {item.foto_barang_keluar.map((foto) => (
-            <Image
+            <TouchableOpacity
               key={foto.id}
-              source={{ uri: foto.photo_url }}
-              style={styles.photoThumb}
-            />
+              onPress={() => setSelectedImage(foto.photo_url)}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{ uri: foto.photo_url }}
+                style={styles.photoThumb}
+              />
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}
@@ -125,6 +133,29 @@ export default function BarangKeluarScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Modal
+        visible={!!selectedImage}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedImage(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalClose}
+            onPress={() => setSelectedImage(null)}
+          >
+            <Text style={styles.modalCloseText}>✕</Text>
+          </TouchableOpacity>
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backButton}>← Back</Text>
@@ -161,7 +192,7 @@ export default function BarangKeluarScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  container: { flex: 1, backgroundColor: "#0f1117" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
@@ -169,50 +200,73 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
   },
   backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#11181C" },
+  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
   list: { padding: 16, gap: 12 },
   row: {
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderRadius: 10,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#2a2d37",
   },
   rowHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 6,
   },
-  rowDate: { fontSize: 13, color: "#687076", fontWeight: "500" },
-  rowTime: { fontSize: 13, color: "#687076" },
+  rowDate: { fontSize: 13, color: "#8b9098", fontWeight: "500" },
+  rowTime: { fontSize: 13, color: "#8b9098" },
   rowName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#11181C",
+    color: "#e8eaed",
     marginBottom: 4,
   },
-  rowDetail: { fontSize: 14, color: "#687076", marginTop: 2 },
+  rowDetail: { fontSize: 14, color: "#8b9098", marginTop: 2 },
   photoScroll: { marginTop: 10 },
   photoScrollContent: { gap: 8 },
   photoThumb: {
-    width: 70,
-    height: 70,
-    borderRadius: 6,
-    backgroundColor: "#e5e7eb",
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#2a2d37",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalClose: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCloseText: { color: "#fff", fontSize: 20, fontWeight: "700" },
+  modalImage: {
+    width: Dimensions.get("window").width - 32,
+    height: Dimensions.get("window").height * 0.7,
   },
   empty: { alignItems: "center", paddingVertical: 40 },
-  emptyText: { fontSize: 14, color: "#9ca3af" },
+  emptyText: { fontSize: 14, color: "#6b7280" },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: "#2a2d37",
   },
   addButton: {
     backgroundColor: "#0a7ea4",

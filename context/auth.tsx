@@ -6,6 +6,8 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   profileId: number | null;
+  profileName: string | null;
+  profileRole: string | null;
   isLoading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profileId, setProfileId] = useState<number | null>(null);
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       if (!session) {
         setProfileId(null);
+        setProfileName(null);
+        setProfileRole(null);
         setIsLoading(false);
       }
     });
@@ -42,11 +48,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!session?.user) return;
     supabase
       .from("profiles")
-      .select("id")
+      .select("id, name, role")
       .eq("auth_user_id", session.user.id)
       .single()
       .then(({ data }) => {
-        if (data) setProfileId(data.id);
+        if (data) {
+          setProfileId(data.id);
+          setProfileName(data.name);
+          setProfileRole(data.role);
+        }
         setIsLoading(false);
       });
   }, [session?.user?.id]);
@@ -74,6 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session,
         user: session?.user ?? null,
         profileId,
+        profileName,
+        profileRole,
         isLoading,
         signUp,
         signIn,

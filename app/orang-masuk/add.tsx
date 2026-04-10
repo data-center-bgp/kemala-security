@@ -10,7 +10,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
 const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
@@ -129,6 +129,7 @@ export default function AddOrangMasuk() {
               value={nama}
               onChangeText={setNama}
               placeholder="Nama pengunjung"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -139,6 +140,7 @@ export default function AddOrangMasuk() {
               value={asal}
               onChangeText={setAsal}
               placeholder="Asal / instansi"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -149,6 +151,7 @@ export default function AddOrangMasuk() {
               value={keperluan}
               onChangeText={setKeperluan}
               placeholder="Tujuan / keperluan"
+              placeholderTextColor="#6b7280"
               multiline
               numberOfLines={3}
             />
@@ -172,19 +175,19 @@ export default function AddOrangMasuk() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  container: { flex: 1, backgroundColor: "#0f1117" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
   },
   backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#11181C" },
+  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
   form: { padding: 20, gap: 18 },
   row: { flexDirection: "row", gap: 12 },
   halfField: { flex: 1 },
@@ -192,23 +195,23 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: "#c0c4cc",
     marginBottom: 6,
     marginLeft: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: "#3a3d47",
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "#fff",
-    color: "#11181C",
+    backgroundColor: "#1a1d27",
+    color: "#e8eaed",
   },
   inputText: {
     fontSize: 16,
-    color: "#11181C",
+    color: "#e8eaed",
   },
   textArea: {
     textAlignVertical: "top",

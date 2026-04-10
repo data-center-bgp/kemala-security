@@ -13,7 +13,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
 const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
@@ -165,6 +165,7 @@ export default function AddPemakaianMobil() {
               value={namaPeminjam}
               onChangeText={setNamaPeminjam}
               placeholder="Nama peminjam"
+              placeholderTextColor="#6b7280"
             />
           </View>
 
@@ -175,6 +176,7 @@ export default function AddPemakaianMobil() {
               value={keperluan}
               onChangeText={setKeperluan}
               placeholder="Keperluan pemakaian"
+              placeholderTextColor="#6b7280"
               multiline
               numberOfLines={3}
             />
@@ -245,19 +247,19 @@ export default function AddPemakaianMobil() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  container: { flex: 1, backgroundColor: "#0f1117" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
   },
   backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#11181C" },
+  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
   form: { padding: 20, gap: 18 },
   row: { flexDirection: "row", gap: 12 },
   halfField: { flex: 1 },
@@ -265,22 +267,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: "#c0c4cc",
     marginBottom: 6,
     marginLeft: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: "#3a3d47",
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "#fff",
-    color: "#11181C",
+    backgroundColor: "#1a1d27",
+    color: "#e8eaed",
   },
-  inputText: { fontSize: 16, color: "#11181C" },
-  placeholder: { color: "#9ca3af" },
+  inputText: { fontSize: 16, color: "#e8eaed" },
+  placeholder: { color: "#6b7280" },
   textArea: { textAlignVertical: "top", minHeight: 80 },
   submitButton: {
     backgroundColor: "#0a7ea4",
@@ -294,11 +296,11 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "70%",
@@ -311,25 +313,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
   },
-  modalTitle: { fontSize: 17, fontWeight: "700", color: "#11181C" },
-  modalClose: { fontSize: 20, color: "#687076", padding: 4 },
+  modalTitle: { fontSize: 17, fontWeight: "700", color: "#e8eaed" },
+  modalClose: { fontSize: 20, color: "#8b9098", padding: 4 },
   modalEmpty: { padding: 40, alignItems: "center" },
-  emptyText: { fontSize: 14, color: "#9ca3af", textAlign: "center" },
+  emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center" },
   mobilOption: {
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: "#252830",
   },
-  mobilOptionSelected: { backgroundColor: "#f0f9ff" },
+  mobilOptionSelected: { backgroundColor: "#0a2540" },
   mobilPlat: { fontSize: 14, fontWeight: "700", color: "#0a7ea4" },
   mobilName: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#11181C",
+    color: "#e8eaed",
     marginTop: 2,
   },
-  mobilMeta: { fontSize: 13, color: "#687076", marginTop: 2 },
+  mobilMeta: { fontSize: 13, color: "#8b9098", marginTop: 2 },
 });

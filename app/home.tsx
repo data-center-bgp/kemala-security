@@ -1,38 +1,66 @@
 import { useAuth } from "@/context/auth";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
   Alert,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+type MenuItemProps = {
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  label: string;
+  color: string;
+  bg: string;
+  onPress: () => void;
+};
+
+function MenuItem({ icon, label, color, bg, onPress }: MenuItemProps) {
+  return (
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+      <View style={[styles.iconCircle, { backgroundColor: bg }]}>
+        <MaterialCommunityIcons name={icon} size={26} color={color} />
+      </View>
+      <Text style={styles.cardTitle}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 export default function HomeScreen() {
-  const { user, signOut } = useAuth();
+  const { profileName, profileRole, signOut } = useAuth();
   const router = useRouter();
 
   const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: signOut },
+    Alert.alert("Sign Out", "Yakin ingin keluar?", [
+      { text: "Batal", style: "cancel" },
+      { text: "Keluar", style: "destructive", onPress: signOut },
     ]);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Welcome back,</Text>
-          <Text style={styles.email}>{user?.email}</Text>
+        <View style={styles.headerLeft}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>
+              {profileName?.charAt(0).toUpperCase() ?? "U"}
+            </Text>
+          </View>
+          <View>
+            <Text style={styles.greeting}>Selamat datang,</Text>
+            <Text style={styles.email}>{profileName ?? "User"}</Text>
+            {profileRole ? (
+              <Text style={styles.role}>{profileRole}</Text>
+            ) : null}
+          </View>
         </View>
-        <TouchableOpacity style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>
-            {user?.email?.charAt(0).toUpperCase() ?? "U"}
-          </Text>
+        <TouchableOpacity onPress={handleSignOut} style={styles.logoutButton}>
+          <MaterialCommunityIcons name="logout" size={18} color="#ef4444" />
+          <Text style={styles.logoutText}>Keluar</Text>
         </TouchableOpacity>
       </View>
 
@@ -40,114 +68,71 @@ export default function HomeScreen() {
         style={styles.body}
         contentContainerStyle={styles.bodyContent}
       >
-        {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Menu</Text>
+        <Text style={styles.sectionTitle}>Pencatatan Orang</Text>
         <View style={styles.grid}>
-          <TouchableOpacity
-            style={styles.card}
+          <MenuItem
+            icon="account-arrow-right"
+            label="Orang Masuk"
+            color="#16a34a"
+            bg="#dcfce7"
             onPress={() => router.push("/orang-masuk" as any)}
-          >
-            <Text style={styles.cardIcon}>🟢</Text>
-            <Text style={styles.cardTitle}>Orang Masuk</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.card}
+          />
+          <MenuItem
+            icon="account-arrow-left"
+            label="Orang Keluar"
+            color="#dc2626"
+            bg="#fee2e2"
             onPress={() => router.push("/orang-keluar" as any)}
-          >
-            <Text style={styles.cardIcon}>🔴</Text>
-            <Text style={styles.cardTitle}>Orang Keluar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push("/barang-masuk" as any)}
-          >
-            <Text style={styles.cardIcon}>📦</Text>
-            <Text style={styles.cardTitle}>Barang Masuk</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push("/barang-keluar" as any)}
-          >
-            <Text style={styles.cardIcon}>📤</Text>
-            <Text style={styles.cardTitle}>Barang Keluar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push("/list-mobil" as any)}
-          >
-            <Text style={styles.cardIcon}>🚗</Text>
-            <Text style={styles.cardTitle}>List Mobil</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push("/pemakaian-mobil" as any)}
-          >
-            <Text style={styles.cardIcon}>🔑</Text>
-            <Text style={styles.cardTitle}>Pemakaian Mobil</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push("/izin-keluar" as any)}
-          >
-            <Text style={styles.cardIcon}>📝</Text>
-            <Text style={styles.cardTitle}>Izin Keluar</Text>
-          </TouchableOpacity>
+          />
         </View>
 
-        {/* Quick Add */}
-        <Text style={styles.sectionTitle}>Tambah Cepat</Text>
+        <Text style={styles.sectionTitle}>Pencatatan Barang</Text>
         <View style={styles.grid}>
-          <TouchableOpacity
-            style={[styles.card, styles.cardAccent]}
-            onPress={() => router.push("/orang-masuk/add")}
-          >
-            <Text style={styles.cardIcon}>➕</Text>
-            <Text style={styles.cardTitleLight}>Catat Masuk</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.card, styles.cardAccent]}
-            onPress={() => router.push("/orang-keluar/add")}
-          >
-            <Text style={styles.cardIcon}>➕</Text>
-            <Text style={styles.cardTitleLight}>Catat Keluar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.card, styles.cardAccent]}
-            onPress={() => router.push("/barang-masuk/add" as any)}
-          >
-            <Text style={styles.cardIcon}>➕</Text>
-            <Text style={styles.cardTitleLight}>Catat Brg Masuk</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.card, styles.cardAccent]}
-            onPress={() => router.push("/barang-keluar/add" as any)}
-          >
-            <Text style={styles.cardIcon}>➕</Text>
-            <Text style={styles.cardTitleLight}>Catat Brg Keluar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.card, styles.cardAccent]}
-            onPress={() => router.push("/pemakaian-mobil/add" as any)}
-          >
-            <Text style={styles.cardIcon}>➕</Text>
-            <Text style={styles.cardTitleLight}>Catat Pemakaian</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.card, styles.cardAccent]}
-            onPress={() => router.push("/izin-keluar/add" as any)}
-          >
-            <Text style={styles.cardIcon}>➕</Text>
-            <Text style={styles.cardTitleLight}>Catat Izin</Text>
-          </TouchableOpacity>
+          <MenuItem
+            icon="package-down"
+            label="Barang Masuk"
+            color="#2563eb"
+            bg="#dbeafe"
+            onPress={() => router.push("/barang-masuk" as any)}
+          />
+          <MenuItem
+            icon="package-up"
+            label="Barang Keluar"
+            color="#ea580c"
+            bg="#ffedd5"
+            onPress={() => router.push("/barang-keluar" as any)}
+          />
+        </View>
+
+        <Text style={styles.sectionTitle}>Kendaraan</Text>
+        <View style={styles.grid}>
+          <MenuItem
+            icon="car-side"
+            label="List Mobil"
+            color="#7c3aed"
+            bg="#ede9fe"
+            onPress={() => router.push("/list-mobil" as any)}
+          />
+          <MenuItem
+            icon="car-key"
+            label="Pemakaian Mobil"
+            color="#0891b2"
+            bg="#cffafe"
+            onPress={() => router.push("/pemakaian-mobil" as any)}
+          />
+        </View>
+
+        <Text style={styles.sectionTitle}>Perizinan</Text>
+        <View style={styles.grid}>
+          <MenuItem
+            icon="clipboard-text-outline"
+            label="Izin Keluar"
+            color="#ca8a04"
+            bg="#fef9c3"
+            onPress={() => router.push("/izin-keluar" as any)}
+          />
         </View>
       </ScrollView>
-
-      {/* Sign Out */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -155,7 +140,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa",
+    backgroundColor: "#0f1117",
   },
   header: {
     flexDirection: "row",
@@ -163,25 +148,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 12,
-    backgroundColor: "#fff",
+    paddingBottom: 14,
+    backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
   },
   greeting: {
-    fontSize: 14,
-    color: "#687076",
+    fontSize: 13,
+    color: "#8b9098",
   },
   email: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-    color: "#11181C",
+    color: "#e8eaed",
+    marginTop: 1,
+  },
+  role: {
+    fontSize: 12,
+    color: "#6b7280",
     marginTop: 2,
   },
   avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: "#0a7ea4",
     justifyContent: "center",
     alignItems: "center",
@@ -191,67 +187,71 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
   },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(239, 68, 68, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.25)",
+  },
+  logoutText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#ef4444",
+  },
   body: {
     flex: 1,
   },
   bodyContent: {
     padding: 20,
+    paddingBottom: 40,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 13,
     fontWeight: "700",
-    color: "#11181C",
-    marginBottom: 12,
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 10,
+    marginTop: 4,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
-    marginBottom: 28,
+    marginBottom: 20,
   },
   card: {
     width: "47%",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: "#1a1d27",
+    borderRadius: 14,
+    paddingVertical: 20,
+    paddingHorizontal: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#2a2d37",
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
-  cardAccent: {
-    backgroundColor: "#0a7ea4",
-    borderColor: "#0a7ea4",
-  },
-  cardIcon: {
-    fontSize: 28,
-    marginBottom: 8,
+  iconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
   },
   cardTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
-    color: "#374151",
-  },
-  cardTitleLight: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-  },
-  signOutButton: {
-    backgroundColor: "#fee2e2",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  signOutText: {
-    color: "#dc2626",
-    fontSize: 15,
-    fontWeight: "600",
+    color: "#c0c4cc",
+    textAlign: "center",
   },
 });

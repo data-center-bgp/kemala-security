@@ -7,12 +7,12 @@ import {
   Alert,
   FlatList,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PemakaianMobilScreen() {
   const router = useRouter();
@@ -129,7 +129,7 @@ export default function PemakaianMobilScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  container: { flex: 1, backgroundColor: "#0f1117" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
@@ -137,27 +137,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#2a2d37",
   },
   backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#11181C" },
+  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
   list: { padding: 16, gap: 12 },
   row: {
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderRadius: 10,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#2a2d37",
   },
   rowHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 6,
   },
-  rowDate: { fontSize: 13, color: "#687076", fontWeight: "500" },
-  rowTime: { fontSize: 13, color: "#687076" },
+  rowDate: { fontSize: 13, color: "#8b9098", fontWeight: "500" },
+  rowTime: { fontSize: 13, color: "#8b9098" },
   rowCar: {
     fontSize: 14,
     fontWeight: "600",
@@ -167,18 +167,18 @@ const styles = StyleSheet.create({
   rowName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#11181C",
+    color: "#e8eaed",
     marginBottom: 4,
   },
-  rowDetail: { fontSize: 14, color: "#687076", marginTop: 2 },
+  rowDetail: { fontSize: 14, color: "#8b9098", marginTop: 2 },
   empty: { alignItems: "center", paddingVertical: 40 },
-  emptyText: { fontSize: 14, color: "#9ca3af" },
+  emptyText: { fontSize: 14, color: "#6b7280" },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1d27",
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: "#2a2d37",
   },
   addButton: {
     backgroundColor: "#0a7ea4",
