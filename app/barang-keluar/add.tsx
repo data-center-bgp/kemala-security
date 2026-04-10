@@ -88,7 +88,7 @@ export default function AddBarangKeluar() {
       const arrayBuffer = await new Response(blob).arrayBuffer();
 
       const { error: uploadError } = await supabase.storage
-        .from("barang-keluar-photos")
+        .from("barang_keluar")
         .upload(fileName, arrayBuffer, {
           contentType: photo.mimeType ?? `image/${ext}`,
         });
@@ -98,12 +98,12 @@ export default function AddBarangKeluar() {
         continue;
       }
 
-      const { data: urlData } = supabase.storage
-        .from("barang-keluar-photos")
-        .getPublicUrl(fileName);
+      const { data: signedData } = await supabase.storage
+        .from("barang_keluar")
+        .createSignedUrl(fileName, 31536000);
 
       await supabase.from("foto_barang_keluar").insert({
-        photo_url: urlData.publicUrl,
+        photo_url: signedData?.signedUrl ?? "",
         storage_path: fileName,
         barang_keluar_id: barangKeluarId,
       });

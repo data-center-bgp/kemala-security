@@ -35,7 +35,26 @@ export default function BarangKeluarScreen() {
       .order("waktu", { ascending: false });
 
     if (!error && rows) {
-      setData(rows as BarangKeluarWithPhotos[]);
+      const rowsWithUrls = await Promise.all(
+        (rows as BarangKeluarWithPhotos[]).map(async (row) => {
+          if (row.foto_barang_keluar?.length) {
+            const photos = await Promise.all(
+              row.foto_barang_keluar.map(async (foto) => {
+                const { data } = await supabase.storage
+                  .from("barang_keluar")
+                  .createSignedUrl(foto.storage_path, 3600);
+                return {
+                  ...foto,
+                  photo_url: data?.signedUrl ?? foto.photo_url,
+                };
+              }),
+            );
+            return { ...row, foto_barang_keluar: photos };
+          }
+          return row;
+        }),
+      );
+      setData(rowsWithUrls);
     }
     setLoading(false);
     setRefreshing(false);
