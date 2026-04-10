@@ -3,11 +3,13 @@ import { supabase } from "@/lib/supabase";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -35,6 +37,7 @@ export default function AddBarangKeluar() {
   const [tujuan, setTujuan] = useState("");
   const [barang, setBarang] = useState("");
   const [keterangan, setKeterangan] = useState("");
+  const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -46,6 +49,67 @@ export default function AddBarangKeluar() {
     if (selected) setTime(selected);
   };
 
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setPhotos((prev) => [...prev, ...result.assets]);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Error", "Izin kamera diperlukan");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setPhotos((prev) => [...prev, ...result.assets]);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadPhotos = async (barangKeluarId: string) => {
+    for (const photo of photos) {
+      const ext = photo.uri.split(".").pop() ?? "jpg";
+      const fileName = `${barangKeluarId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const response = await fetch(photo.uri);
+      const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
+
+      const { error: uploadError } = await supabase.storage
+        .from("barang-keluar-photos")
+        .upload(fileName, arrayBuffer, {
+          contentType: photo.mimeType ?? `image/${ext}`,
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError.message);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("barang-keluar-photos")
+        .getPublicUrl(fileName);
+
+      await supabase.from("foto_barang_keluar").insert({
+        photo_url: urlData.publicUrl,
+        storage_path: fileName,
+        barang_keluar_id: barangKeluarId,
+      });
+    }
+  };
+
   const handleSubmit = async () => {
     if (!pemilikBarang || !tujuan || !barang || !keterangan) {
       Alert.alert("Error", "Harap isi semua field");
@@ -53,24 +117,34 @@ export default function AddBarangKeluar() {
     }
 
     setLoading(true);
-    const { error } = await supabase.from("barang_keluar").insert({
-      tanggal: formatDate(date),
-      waktu: formatTime(time),
-      pemilik_barang: pemilikBarang.trim(),
-      tujuan: tujuan.trim(),
-      barang: barang.trim(),
-      keterangan: keterangan.trim(),
-      sekuriti_id: profileId,
-    });
-    setLoading(false);
+    const { data: inserted, error } = await supabase
+      .from("barang_keluar")
+      .insert({
+        tanggal: formatDate(date),
+        waktu: formatTime(time),
+        pemilik_barang: pemilikBarang.trim(),
+        tujuan: tujuan.trim(),
+        barang: barang.trim(),
+        keterangan: keterangan.trim(),
+        sekuriti_id: profileId,
+      })
+      .select("id")
+      .single();
 
-    if (error) {
-      Alert.alert("Gagal", error.message);
-    } else {
-      Alert.alert("Berhasil", "Data berhasil ditambahkan", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+    if (error || !inserted) {
+      setLoading(false);
+      Alert.alert("Gagal", error?.message ?? "Gagal menyimpan data");
+      return;
     }
+
+    if (photos.length > 0) {
+      await uploadPhotos(inserted.id);
+    }
+
+    setLoading(false);
+    Alert.alert("Berhasil", "Data berhasil ditambahkan", [
+      { text: "OK", onPress: () => router.back() },
+    ]);
   };
 
   return (
@@ -166,6 +240,34 @@ export default function AddBarangKeluar() {
             />
           </View>
 
+          <View style={styles.field}>
+            <Text style={styles.label}>Foto</Text>
+            <View style={styles.photoRow}>
+              {photos.map((photo, index) => (
+                <View key={index} style={styles.photoThumb}>
+                  <Image
+                    source={{ uri: photo.uri }}
+                    style={styles.photoImage}
+                  />
+                  <TouchableOpacity
+                    style={styles.photoRemove}
+                    onPress={() => removePhoto(index)}
+                  >
+                    <Text style={styles.photoRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+            <View style={styles.photoButtons}>
+              <TouchableOpacity style={styles.photoButton} onPress={takePhoto}>
+                <Text style={styles.photoButtonText}>📷 Kamera</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                <Text style={styles.photoButtonText}>🖼️ Galeri</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitDisabled]}
             onPress={handleSubmit}
@@ -235,4 +337,40 @@ const styles = StyleSheet.create({
   },
   submitDisabled: { opacity: 0.7 },
   submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  photoRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 10,
+  },
+  photoThumb: { position: "relative" },
+  photoImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#e5e7eb",
+  },
+  photoRemove: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: "#ef4444",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  photoRemoveText: { color: "#fff", fontSize: 11, fontWeight: "700" },
+  photoButtons: { flexDirection: "row", gap: 12 },
+  photoButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  photoButtonText: { fontSize: 14, fontWeight: "600", color: "#374151" },
 });

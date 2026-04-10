@@ -1,33 +1,39 @@
 import { supabase } from "@/lib/supabase";
-import { BarangKeluar } from "@/types/database";
+import { BarangKeluar, FotoBarangKeluar } from "@/types/database";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   RefreshControl,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
+type BarangKeluarWithPhotos = BarangKeluar & {
+  foto_barang_keluar?: FotoBarangKeluar[];
+};
+
 export default function BarangKeluarScreen() {
   const router = useRouter();
-  const [data, setData] = useState<BarangKeluar[]>([]);
+  const [data, setData] = useState<BarangKeluarWithPhotos[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async () => {
     const { data: rows, error } = await supabase
       .from("barang_keluar")
-      .select("*")
+      .select("*, foto_barang_keluar(*)")
       .order("tanggal", { ascending: false })
       .order("waktu", { ascending: false });
 
     if (!error && rows) {
-      setData(rows as BarangKeluar[]);
+      setData(rows as BarangKeluarWithPhotos[]);
     }
     setLoading(false);
     setRefreshing(false);
@@ -42,7 +48,7 @@ export default function BarangKeluarScreen() {
     fetchData();
   };
 
-  const renderItem = ({ item }: { item: BarangKeluar }) => (
+  const renderItem = ({ item }: { item: BarangKeluarWithPhotos }) => (
     <View style={styles.row}>
       <View style={styles.rowHeader}>
         <Text style={styles.rowDate}>{item.tanggal}</Text>
@@ -52,6 +58,22 @@ export default function BarangKeluarScreen() {
       <Text style={styles.rowDetail}>Pemilik: {item.pemilik_barang}</Text>
       <Text style={styles.rowDetail}>Tujuan: {item.tujuan}</Text>
       <Text style={styles.rowDetail}>Keterangan: {item.keterangan}</Text>
+      {item.foto_barang_keluar && item.foto_barang_keluar.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.photoScroll}
+          contentContainerStyle={styles.photoScrollContent}
+        >
+          {item.foto_barang_keluar.map((foto) => (
+            <Image
+              key={foto.id}
+              source={{ uri: foto.photo_url }}
+              style={styles.photoThumb}
+            />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 
@@ -137,6 +159,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   rowDetail: { fontSize: 14, color: "#687076", marginTop: 2 },
+  photoScroll: { marginTop: 10 },
+  photoScrollContent: { gap: 8 },
+  photoThumb: {
+    width: 70,
+    height: 70,
+    borderRadius: 6,
+    backgroundColor: "#e5e7eb",
+  },
   empty: { alignItems: "center", paddingVertical: 40 },
   emptyText: { fontSize: 14, color: "#9ca3af" },
   footer: {

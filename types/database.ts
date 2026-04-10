@@ -76,3 +76,19 @@ export type IzinKeluar = {
   sekuriti_id: number;
   created_at?: string;
 };
+
+export type FotoBarangMasuk = {
+  id: string;
+  photo_url: string;
+  storage_path: string;
+  barang_masuk_id: string;
+  created_at?: string;
+};
+
+export type FotoBarangKeluar = {
+  id: string;
+  photo_url: string;
+  storage_path: string;
+  barang_keluar_id: string;
+  created_at?: string;
+};
