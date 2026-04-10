@@ -75,14 +75,6 @@ export default function OrangMasukScreen() {
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -103,7 +95,11 @@ export default function OrangMasukScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Belum ada data</Text>
+            {loading ? (
+              <ActivityIndicator size="large" color="#0a7ea4" />
+            ) : (
+              <Text style={styles.emptyText}>Belum ada data</Text>
+            )}
           </View>
         }
       />
@@ -122,7 +118,6 @@ export default function OrangMasukScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f1117" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

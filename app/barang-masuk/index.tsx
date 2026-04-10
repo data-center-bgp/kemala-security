@@ -123,14 +123,6 @@ export default function BarangMasukScreen() {
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <Modal
@@ -174,7 +166,11 @@ export default function BarangMasukScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Belum ada data</Text>
+            {loading ? (
+              <ActivityIndicator size="large" color="#0a7ea4" />
+            ) : (
+              <Text style={styles.emptyText}>Belum ada data</Text>
+            )}
           </View>
         }
       />
@@ -193,7 +189,6 @@ export default function BarangMasukScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f1117" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
