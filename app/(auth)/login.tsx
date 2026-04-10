@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/auth";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -40,42 +41,63 @@ export default function LoginScreen() {
     >
       <View style={styles.inner}>
         <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>KS</Text>
+          <View style={styles.logoGlow}>
+            <View style={styles.logoCircle}>
+              <MaterialCommunityIcons
+                name="shield-check"
+                size={36}
+                color="#fff"
+              />
+            </View>
           </View>
+          <Text style={styles.title}>Kemala Security</Text>
+          <Text style={styles.subtitle}>Sistem Pencatatan Keamanan</Text>
         </View>
 
-        <Text style={styles.title}>Kemala Security</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
-
-        <View style={styles.form}>
+        <View style={styles.card}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@company.com"
-              placeholderTextColor="#6b7280"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              autoComplete="email"
-            />
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons
+                name="email-outline"
+                size={20}
+                color="#6b7280"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="you@company.com"
+                placeholderTextColor="#4b5060"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                autoComplete="email"
+              />
+            </View>
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              placeholderTextColor="#6b7280"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              textContentType="password"
-              autoComplete="password"
-            />
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons
+                name="lock-outline"
+                size={20}
+                color="#6b7280"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                placeholderTextColor="#4b5060"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                textContentType="password"
+                autoComplete="password"
+              />
+            </View>
           </View>
 
           <TouchableOpacity
@@ -87,7 +109,14 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <View style={styles.buttonInner}>
+                <Text style={styles.buttonText}>Sign In</Text>
+                <MaterialCommunityIcons
+                  name="arrow-right"
+                  size={20}
+                  color="#fff"
+                />
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -108,74 +137,98 @@ const styles = StyleSheet.create({
   inner: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 32,
+  },
+  logoGlow: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: "rgba(10, 126, 164, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
   logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: "#0a7ea4",
     justifyContent: "center",
     alignItems: "center",
   },
-  logoText: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "800",
-  },
   title: {
-    fontSize: 26,
-    fontWeight: "700",
+    fontSize: 24,
+    fontWeight: "800",
     color: "#e8eaed",
     textAlign: "center",
-    marginBottom: 4,
+    letterSpacing: 0.3,
   },
   subtitle: {
-    fontSize: 15,
-    color: "#8b9098",
+    fontSize: 14,
+    color: "#6b7280",
     textAlign: "center",
-    marginBottom: 36,
+    marginTop: 4,
   },
-  form: {
-    gap: 20,
+  card: {
+    backgroundColor: "#1a1d27",
+    borderRadius: 16,
+    padding: 20,
+    gap: 18,
+    borderWidth: 1,
+    borderColor: "#2a2d37",
   },
   inputContainer: {
     gap: 6,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
-    color: "#c0c4cc",
+    color: "#8b9098",
     marginLeft: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#2a2d37",
+    borderRadius: 10,
+    backgroundColor: "#0f1117",
+  },
+  inputIcon: {
+    paddingLeft: 14,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#3a3d47",
-    borderRadius: 10,
-    paddingHorizontal: 16,
+    flex: 1,
+    paddingHorizontal: 12,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "#1a1d27",
     color: "#e8eaed",
   },
   button: {
     backgroundColor: "#0a7ea4",
     borderRadius: 10,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: "center",
     marginTop: 4,
     shadowColor: "#0a7ea4",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
   buttonDisabled: {
     opacity: 0.7,
+  },
+  buttonInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   buttonText: {
     color: "#fff",
@@ -183,9 +236,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   helpText: {
-    color: "#6b7280",
+    color: "#4b5060",
     fontSize: 13,
     textAlign: "center",
-    marginTop: 28,
+    marginTop: 24,
   },
 });

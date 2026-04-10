@@ -1,26 +1,44 @@
-import { Redirect, Slot } from "expo-router";
+import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider, useAuth } from "@/context/auth";
 
-function RootNavigator() {
+function AuthGate({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useAuth();
+  const router = useRouter();
+  const segments = useSegments();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!session && !inAuthGroup) {
+      router.replace("/(auth)/login");
+    } else if (session && inAuthGroup) {
+      router.replace("/home");
+    }
+  }, [session, isLoading, segments]);
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#0f1117",
+        }}
+      >
+        <ActivityIndicator size="large" color="#0a7ea4" />
       </View>
     );
   }
 
-  if (!session) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
-  return <Redirect href="/home" />;
+  return <>{children}</>;
 }
 
 export default function RootLayout() {
@@ -28,7 +46,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <StatusBar style="light" />
-        <Slot />
+        <AuthGate>
+          <Slot />
+        </AuthGate>
       </AuthProvider>
     </SafeAreaProvider>
   );
