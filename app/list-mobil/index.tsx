@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   SafeAreaView,
@@ -23,6 +24,7 @@ export default function ListMobilScreen() {
     const { data: rows, error } = await supabase
       .from("list_mobil")
       .select("*")
+      .is("deleted_at", null)
       .order("nama", { ascending: true });
 
     if (!error && rows) {
@@ -41,8 +43,29 @@ export default function ListMobilScreen() {
     fetchData();
   };
 
+  const handleDelete = (item: ListMobil) => {
+    Alert.alert(
+      "Hapus Mobil",
+      `Hapus ${item.brand} ${item.nama} (${item.nomor_plat})?`,
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: async () => {
+            await supabase
+              .from("list_mobil")
+              .update({ deleted_at: new Date().toISOString() })
+              .eq("id", item.id);
+            fetchData();
+          },
+        },
+      ],
+    );
+  };
+
   const renderItem = ({ item }: { item: ListMobil }) => (
-    <View style={styles.row}>
+    <TouchableOpacity onLongPress={() => handleDelete(item)} style={styles.row}>
       <Text style={styles.rowPlat}>{item.nomor_plat}</Text>
       <Text style={styles.rowName}>
         {item.brand} {item.nama}
@@ -51,7 +74,7 @@ export default function ListMobilScreen() {
         <Text style={styles.rowDetail}>Tipe: {item.tipe}</Text>
         <Text style={styles.rowDetail}>Warna: {item.warna}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {

@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   SafeAreaView,
@@ -25,6 +26,7 @@ export default function OrangKeluarScreen() {
     const { data: rows, error } = await supabase
       .from("orang_keluar")
       .select("*")
+      .is("deleted_at", null)
       .order("tanggal", { ascending: false })
       .order("waktu", { ascending: false });
 
@@ -44,15 +46,32 @@ export default function OrangKeluarScreen() {
     fetchData();
   };
 
+  const handleDelete = (item: OrangKeluar) => {
+    Alert.alert("Hapus Data", `Hapus data ${item.nama}?`, [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Hapus",
+        style: "destructive",
+        onPress: async () => {
+          await supabase
+            .from("orang_keluar")
+            .update({ deleted_at: new Date().toISOString() })
+            .eq("id", item.id);
+          fetchData();
+        },
+      },
+    ]);
+  };
+
   const renderItem = ({ item }: { item: OrangKeluar }) => (
-    <View style={styles.row}>
+    <TouchableOpacity onLongPress={() => handleDelete(item)} style={styles.row}>
       <View style={styles.rowHeader}>
         <Text style={styles.rowDate}>{item.tanggal}</Text>
         <Text style={styles.rowTime}>{item.waktu}</Text>
       </View>
       <Text style={styles.rowName}>{item.nama}</Text>
       <Text style={styles.rowDetail}>Keterangan: {item.keterangan}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {

@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   SafeAreaView,
@@ -23,6 +24,7 @@ export default function IzinKeluarScreen() {
     const { data: rows, error } = await supabase
       .from("izin_keluar")
       .select("*")
+      .is("deleted_at", null)
       .order("tanggal", { ascending: false })
       .order("jam_keluar", { ascending: false });
 
@@ -42,6 +44,23 @@ export default function IzinKeluarScreen() {
     fetchData();
   };
 
+  const handleDelete = (item: IzinKeluar) => {
+    Alert.alert("Hapus Data", `Hapus data izin ${item.nama}?`, [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Hapus",
+        style: "destructive",
+        onPress: async () => {
+          await supabase
+            .from("izin_keluar")
+            .update({ deleted_at: new Date().toISOString() })
+            .eq("id", item.id);
+          fetchData();
+        },
+      },
+    ]);
+  };
+
   const formatDurasi = (minutes: number) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
@@ -51,7 +70,7 @@ export default function IzinKeluarScreen() {
   };
 
   const renderItem = ({ item }: { item: IzinKeluar }) => (
-    <View style={styles.row}>
+    <TouchableOpacity onLongPress={() => handleDelete(item)} style={styles.row}>
       <View style={styles.rowHeader}>
         <Text style={styles.rowDate}>{item.tanggal}</Text>
         <Text style={styles.rowDurasi}>{formatDurasi(item.durasi_keluar)}</Text>
@@ -62,7 +81,7 @@ export default function IzinKeluarScreen() {
         <Text style={styles.rowTime}>Keluar: {item.jam_keluar}</Text>
         <Text style={styles.rowTime}>Masuk: {item.jam_masuk}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {

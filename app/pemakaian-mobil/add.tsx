@@ -44,6 +44,7 @@ export default function AddPemakaianMobil() {
     const { data, error } = await supabase
       .from("list_mobil")
       .select("*")
+      .is("deleted_at", null)
       .order("nama", { ascending: true });
     if (!error && data) {
       setMobilList(data as ListMobil[]);

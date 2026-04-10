@@ -7,6 +7,7 @@ export type OrangMasuk = {
   keperluan: string;
   sekuriti_id: number;
   created_at?: string;
+  deleted_at?: string | null;
 };
 
 export type OrangKeluar = {
@@ -17,6 +18,7 @@ export type OrangKeluar = {
   keterangan: string;
   sekuriti_id: number;
   created_at?: string;
+  deleted_at?: string | null;
 };
 
 export type BarangMasuk = {
@@ -29,6 +31,7 @@ export type BarangMasuk = {
   keterangan: string;
   sekuriti_id: number;
   created_at?: string;
+  deleted_at?: string | null;
 };
 
 export type BarangKeluar = {
@@ -41,6 +44,7 @@ export type BarangKeluar = {
   keterangan: string;
   sekuriti_id: number;
   created_at?: string;
+  deleted_at?: string | null;
 };
 
 export type ListMobil = {
@@ -51,6 +55,7 @@ export type ListMobil = {
   tipe: string;
   warna: string;
   created_at?: string;
+  deleted_at?: string | null;
 };
 
 export type PemakaianMobil = {
@@ -62,6 +67,7 @@ export type PemakaianMobil = {
   keperluan: string;
   sekuriti_id: number;
   created_at?: string;
+  deleted_at?: string | null;
   list_mobil?: ListMobil;
 };
 
@@ -75,6 +81,7 @@ export type IzinKeluar = {
   durasi_keluar: number;
   sekuriti_id: number;
   created_at?: string;
+  deleted_at?: string | null;
 };
 
 export type FotoBarangMasuk = {
@@ -83,6 +90,7 @@ export type FotoBarangMasuk = {
   storage_path: string;
   barang_masuk_id: string;
   created_at?: string;
+  deleted_at?: string | null;
 };
 
 export type FotoBarangKeluar = {
@@ -91,4 +99,5 @@ export type FotoBarangKeluar = {
   storage_path: string;
   barang_keluar_id: string;
   created_at?: string;
+  deleted_at?: string | null;
 };
