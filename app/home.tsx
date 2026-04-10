@@ -85,6 +85,13 @@ export default function HomeScreen() {
             <Text style={styles.cardIcon}>🔑</Text>
             <Text style={styles.cardTitle}>Pemakaian Mobil</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push("/izin-keluar" as any)}
+          >
+            <Text style={styles.cardIcon}>📝</Text>
+            <Text style={styles.cardTitle}>Izin Keluar</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Add */}
@@ -124,6 +131,13 @@ export default function HomeScreen() {
           >
             <Text style={styles.cardIcon}>➕</Text>
             <Text style={styles.cardTitleLight}>Catat Pemakaian</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.card, styles.cardAccent]}
+            onPress={() => router.push("/izin-keluar/add" as any)}
+          >
+            <Text style={styles.cardIcon}>➕</Text>
+            <Text style={styles.cardTitleLight}>Catat Izin</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

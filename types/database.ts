@@ -64,3 +64,15 @@ export type PemakaianMobil = {
   created_at?: string;
   list_mobil?: ListMobil;
 };
+
+export type IzinKeluar = {
+  id: string;
+  tanggal: string;
+  nama: string;
+  keperluan: string;
+  jam_keluar: string;
+  jam_masuk: string;
+  durasi_keluar: number;
+  sekuriti_id: number;
+  created_at?: string;
+};
