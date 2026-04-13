@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -26,10 +26,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
 const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 
-export default function AddPemakaianMobil() {
+export default function EditPemakaianMobil() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
@@ -49,12 +51,48 @@ export default function AddPemakaianMobil() {
       .order("nama", { ascending: true });
     if (!error && data) {
       setMobilList(data as ListMobil[]);
+      return data as ListMobil[];
     }
+    return [];
   }, []);
 
   useEffect(() => {
-    fetchMobil();
-  }, [fetchMobil]);
+    if (!id) return;
+    (async () => {
+      const mobilData = await fetchMobil();
+
+      const { data: row, error } = await supabase
+        .from("pemakaian_mobil")
+        .select("*, list_mobil(*)")
+        .eq("id", id)
+        .single();
+
+      if (error || !row) {
+        Alert.alert("Error", "Data tidak ditemukan");
+        router.back();
+        return;
+      }
+
+      const [year, month, day] = row.tanggal_pakai.split("-").map(Number);
+      setDate(new Date(year, month - 1, day));
+      const [hours, minutes] = row.waktu_pakai.split(":").map(Number);
+      const t = new Date();
+      t.setHours(hours, minutes, 0, 0);
+      setTime(t);
+      setNamaPeminjam(row.nama_peminjam ?? "");
+      setKeperluan(row.keperluan ?? "");
+
+      // Set selected mobil from fetched list or from joined data
+      const matchedMobil = mobilData.find((m) => m.id === row.mobil_id);
+      if (matchedMobil) {
+        setSelectedMobil(matchedMobil);
+      } else if (row.list_mobil) {
+        setSelectedMobil(row.list_mobil as ListMobil);
+      }
+
+      setFetching(false);
+    })();
+  }, [id]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -73,24 +111,39 @@ export default function AddPemakaianMobil() {
     }
 
     setLoading(true);
-    const { error } = await supabase.from("pemakaian_mobil").insert({
-      tanggal_pakai: formatDate(date),
-      waktu_pakai: formatTime(time),
-      mobil_id: selectedMobil.id,
-      nama_peminjam: namaPeminjam.trim(),
-      keperluan: keperluan.trim(),
-      sekuriti_id: profileId,
-    });
+    const { error } = await supabase
+      .from("pemakaian_mobil")
+      .update({
+        tanggal_pakai: formatDate(date),
+        waktu_pakai: formatTime(time),
+        mobil_id: selectedMobil.id,
+        nama_peminjam: namaPeminjam.trim(),
+        keperluan: keperluan.trim(),
+      })
+      .eq("id", id);
+
     setLoading(false);
 
     if (error) {
       Alert.alert("Gagal", error.message);
     } else {
-      Alert.alert("Berhasil", "Data berhasil ditambahkan", [
+      Alert.alert("Berhasil", "Data berhasil diperbarui", [
         { text: "OK", onPress: () => router.back() },
       ]);
     }
   };
+
+  if (fetching) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -98,7 +151,7 @@ export default function AddPemakaianMobil() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Pemakaian</Text>
+        <Text style={styles.headerTitle}>Edit Pemakaian Mobil</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -245,7 +298,7 @@ export default function AddPemakaianMobil() {
                   size={20}
                   color="#fff"
                 />
-                <Text style={styles.submitText}>Simpan</Text>
+                <Text style={styles.submitText}>Simpan Perubahan</Text>
               </View>
             )}
           </TouchableOpacity>

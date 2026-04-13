@@ -1,14 +1,20 @@
 import { supabase } from "@/lib/supabase";
 import { IzinKeluar } from "@/types/database";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -19,6 +25,83 @@ export default function IzinKeluarScreen() {
   const [data, setData] = useState<IzinKeluar[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<
+    "all" | "today" | "week" | "range"
+  >("all");
+  const [page, setPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState(new Date());
+  const [dateTo, setDateTo] = useState(new Date());
+  const [showDateFrom, setShowDateFrom] = useState(false);
+  const [showDateTo, setShowDateTo] = useState(false);
+  const ITEMS_PER_PAGE = 10;
+
+  const formatDateStr = (d: Date) => d.toISOString().split("T")[0];
+
+  const onDateFromChange = (_e: DateTimePickerEvent, selected?: Date) => {
+    setShowDateFrom(false);
+    if (selected) {
+      setDateFrom(selected);
+      if (selected > dateTo) setDateTo(selected);
+    }
+  };
+
+  const onDateToChange = (_e: DateTimePickerEvent, selected?: Date) => {
+    setShowDateTo(false);
+    if (selected) {
+      setDateTo(selected);
+      if (selected < dateFrom) setDateFrom(selected);
+    }
+  };
+
+  const filteredData = useMemo(() => {
+    let result = data;
+
+    if (dateFilter !== "all") {
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
+      if (dateFilter === "today") {
+        result = result.filter((item) => item.tanggal === todayStr);
+      } else if (dateFilter === "week") {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const weekStr = weekAgo.toISOString().split("T")[0];
+        result = result.filter((item) => item.tanggal >= weekStr);
+      } else if (dateFilter === "range") {
+        const fromStr = formatDateStr(dateFrom);
+        const toStr = formatDateStr(dateTo);
+        result = result.filter(
+          (item) => item.tanggal >= fromStr && item.tanggal <= toStr,
+        );
+      }
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.nama?.toLowerCase().includes(q) ||
+          item.keperluan?.toLowerCase().includes(q) ||
+          item.tanggal?.toLowerCase().includes(q),
+      );
+    }
+
+    return result;
+  }, [data, searchQuery, dateFilter, dateFrom, dateTo]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredData.length / ITEMS_PER_PAGE),
+  );
+  const paginatedData = useMemo(
+    () =>
+      filteredData.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
+    [filteredData, page],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, dateFilter, dateFrom, dateTo]);
 
   const fetchData = useCallback(async () => {
     const { data: rows, error } = await supabase
@@ -64,38 +147,223 @@ export default function IzinKeluarScreen() {
   const formatDurasi = (minutes: number) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    if (h > 0 && m > 0) return `${h} jam ${m} menit`;
+    if (h > 0 && m > 0) return `${h}j ${m}m`;
     if (h > 0) return `${h} jam`;
     return `${m} menit`;
   };
 
   const renderItem = ({ item }: { item: IzinKeluar }) => (
-    <TouchableOpacity onLongPress={() => handleDelete(item)} style={styles.row}>
-      <View style={styles.rowHeader}>
-        <Text style={styles.rowDate}>{item.tanggal}</Text>
-        <Text style={styles.rowDurasi}>{formatDurasi(item.durasi_keluar)}</Text>
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        <View style={styles.cardIconWrap}>
+          <MaterialCommunityIcons name="door-open" size={20} color="#0a7ea4" />
+        </View>
+        <View style={styles.cardTitleArea}>
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {item.nama}
+          </Text>
+          <View style={styles.dateBadge}>
+            <MaterialCommunityIcons
+              name="calendar-clock"
+              size={12}
+              color="#6b7280"
+            />
+            <Text style={styles.dateText}>{item.tanggal}</Text>
+          </View>
+        </View>
+        <View style={styles.durasiBadge}>
+          <MaterialCommunityIcons
+            name="timer-outline"
+            size={13}
+            color="#0a7ea4"
+          />
+          <Text style={styles.durasiText}>
+            {formatDurasi(item.durasi_keluar)}
+          </Text>
+        </View>
       </View>
-      <Text style={styles.rowName}>{item.nama}</Text>
-      <Text style={styles.rowDetail}>Keperluan: {item.keperluan}</Text>
-      <View style={styles.rowTimeRow}>
-        <Text style={styles.rowTime}>Keluar: {item.jam_keluar}</Text>
-        <Text style={styles.rowTime}>Masuk: {item.jam_masuk}</Text>
+
+      <View style={styles.cardBody}>
+        <View style={styles.detailRow}>
+          <MaterialCommunityIcons
+            name="text-box-outline"
+            size={16}
+            color="#6b7280"
+          />
+          <Text style={styles.detailLabel}>Keperluan</Text>
+          <Text style={styles.detailValue} numberOfLines={2}>
+            {item.keperluan}
+          </Text>
+        </View>
+        <View style={styles.timeRow}>
+          <View style={styles.timeChip}>
+            <MaterialCommunityIcons name="logout" size={14} color="#ef4444" />
+            <Text style={styles.timeChipLabel}>Keluar</Text>
+            <Text style={styles.timeChipValue}>{item.jam_keluar}</Text>
+          </View>
+          <MaterialCommunityIcons
+            name="arrow-right"
+            size={14}
+            color="#3a3d47"
+          />
+          <View style={styles.timeChip}>
+            <MaterialCommunityIcons name="login" size={14} color="#22c55e" />
+            <Text style={styles.timeChipLabel}>Masuk</Text>
+            <Text style={styles.timeChipValue}>{item.jam_masuk}</Text>
+          </View>
+        </View>
       </View>
-    </TouchableOpacity>
+
+      <View style={styles.cardActions}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push(`/izin-keluar/edit?id=${item.id}` as any)}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name="pencil-outline"
+            size={16}
+            color="#0a7ea4"
+          />
+          <Text style={styles.actionBtnText}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnDelete]}
+          onPress={() => handleDelete(item)}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name="trash-can-outline"
+            size={16}
+            color="#ef4444"
+          />
+          <Text style={[styles.actionBtnText, styles.actionBtnDeleteText]}>
+            Hapus
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.title}>Izin Keluar</Text>
-        <View style={{ width: 50 }} />
+        <Text style={styles.headerTitle}>Izin Keluar</Text>
+        <View style={{ width: 40 }} />
       </View>
 
+      <View style={styles.searchBar}>
+        <MaterialCommunityIcons name="magnify" size={20} color="#6b7280" />
+        <TextInput
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Cari nama, keperluan..."
+          placeholderTextColor="#4b5060"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <MaterialCommunityIcons
+              name="close-circle"
+              size={18}
+              color="#6b7280"
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={styles.filterRow}
+      >
+        {(["all", "today", "week", "range"] as const).map((key) => {
+          const labels = {
+            all: "Semua",
+            today: "Hari Ini",
+            week: "7 Hari",
+            range: "Rentang",
+          };
+          const icons = {
+            all: "filter-off",
+            today: "calendar-today",
+            week: "calendar-week",
+            range: "calendar-range",
+          } as const;
+          const active = dateFilter === key;
+          return (
+            <TouchableOpacity
+              key={key}
+              style={[styles.filterChip, active && styles.filterChipActive]}
+              onPress={() => setDateFilter(key)}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name={icons[key]}
+                size={14}
+                color={active ? "#fff" : "#6b7280"}
+              />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  active && styles.filterChipTextActive,
+                ]}
+              >
+                {labels[key]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {dateFilter === "range" && (
+        <View style={styles.dateRangeRow}>
+          <TouchableOpacity
+            style={styles.dateRangeBtn}
+            onPress={() => setShowDateFrom(true)}
+          >
+            <MaterialCommunityIcons
+              name="calendar-start"
+              size={16}
+              color="#0a7ea4"
+            />
+            <Text style={styles.dateRangeText}>{formatDateStr(dateFrom)}</Text>
+          </TouchableOpacity>
+          <MaterialCommunityIcons
+            name="arrow-right"
+            size={16}
+            color="#6b7280"
+          />
+          <TouchableOpacity
+            style={styles.dateRangeBtn}
+            onPress={() => setShowDateTo(true)}
+          >
+            <MaterialCommunityIcons
+              name="calendar-end"
+              size={16}
+              color="#0a7ea4"
+            />
+            <Text style={styles.dateRangeText}>{formatDateStr(dateTo)}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {showDateFrom && (
+        <DateTimePicker
+          value={dateFrom}
+          mode="date"
+          onChange={onDateFromChange}
+        />
+      )}
+      {showDateTo && (
+        <DateTimePicker value={dateTo} mode="date" onChange={onDateToChange} />
+      )}
+
       <FlatList
-        data={data}
+        data={paginatedData}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
@@ -107,18 +375,60 @@ export default function IzinKeluarScreen() {
             {loading ? (
               <ActivityIndicator size="large" color="#0a7ea4" />
             ) : (
-              <Text style={styles.emptyText}>Belum ada data</Text>
+              <>
+                <MaterialCommunityIcons
+                  name="door-closed-lock"
+                  size={48}
+                  color="#2a2d37"
+                />
+                <Text style={styles.emptyText}>Belum ada data izin keluar</Text>
+              </>
             )}
           </View>
         }
       />
 
+      {filteredData.length > ITEMS_PER_PAGE && (
+        <View style={styles.pagination}>
+          <TouchableOpacity
+            style={[styles.pageBtn, page <= 1 && styles.pageBtnDisabled]}
+            onPress={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+          >
+            <MaterialCommunityIcons
+              name="chevron-left"
+              size={20}
+              color={page <= 1 ? "#3a3d47" : "#0a7ea4"}
+            />
+          </TouchableOpacity>
+          <Text style={styles.pageInfo}>
+            {page} / {totalPages}
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.pageBtn,
+              page >= totalPages && styles.pageBtnDisabled,
+            ]}
+            onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+          >
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={20}
+              color={page >= totalPages ? "#3a3d47" : "#0a7ea4"}
+            />
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => router.push("/izin-keluar/add" as any)}
+          activeOpacity={0.8}
         >
-          <Text style={styles.addButtonText}>+ Tambah Data</Text>
+          <MaterialCommunityIcons name="plus" size={20} color="#fff" />
+          <Text style={styles.addButtonText}>Tambah Izin Keluar</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -129,51 +439,252 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f1117" },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
     borderBottomColor: "#2a2d37",
   },
-  backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
-  list: { padding: 16, gap: 12 },
-  row: {
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#252830",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#e8eaed",
+    textAlign: "center",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#1a1d27",
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#2a2d37",
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: "#e8eaed",
+  },
+  filterRow: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 2,
+    gap: 8,
+  },
+  filterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: "#1a1d27",
+    borderWidth: 1,
+    borderColor: "#2a2d37",
+  },
+  filterChipActive: {
+    backgroundColor: "#0a7ea4",
+    borderColor: "#0a7ea4",
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
+  filterChipTextActive: {
+    color: "#fff",
+  },
+  dateRangeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 2,
+  },
+  dateRangeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#1a1d27",
+    borderWidth: 1,
+    borderColor: "#2a2d37",
     borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dateRangeText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#e8eaed",
+  },
+  list: { padding: 16, gap: 12, paddingBottom: 8 },
+  card: {
+    backgroundColor: "#1a1d27",
+    borderRadius: 14,
     padding: 16,
     borderWidth: 1,
     borderColor: "#2a2d37",
   },
-  rowHeader: {
+  cardTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 14,
   },
-  rowDate: { fontSize: 13, color: "#8b9098", fontWeight: "500" },
-  rowDurasi: { fontSize: 13, color: "#0a7ea4", fontWeight: "600" },
-  rowName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#e8eaed",
-    marginBottom: 4,
+  cardIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(10, 126, 164, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  rowDetail: { fontSize: 14, color: "#8b9098", marginTop: 2 },
-  rowTimeRow: {
+  cardTitleArea: { flex: 1 },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: "#e8eaed" },
+  dateBadge: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-    paddingTop: 8,
+    alignItems: "center",
+    gap: 4,
+    marginTop: 3,
+  },
+  dateText: { fontSize: 12, color: "#6b7280" },
+  durasiBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(10, 126, 164, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  durasiText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#0a7ea4",
+  },
+  cardBody: {
+    gap: 10,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: "#252830",
   },
-  rowTime: { fontSize: 13, color: "#8b9098" },
-  empty: { alignItems: "center", paddingVertical: 40 },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  detailLabel: {
+    fontSize: 13,
+    color: "#6b7280",
+    width: 72,
+  },
+  detailValue: {
+    flex: 1,
+    fontSize: 14,
+    color: "#c0c4cc",
+    fontWeight: "500",
+  },
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 4,
+    backgroundColor: "#151821",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  timeChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  timeChipLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "600",
+  },
+  timeChipValue: {
+    fontSize: 14,
+    color: "#e8eaed",
+    fontWeight: "700",
+  },
+  cardActions: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#252830",
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "rgba(10, 126, 164, 0.1)",
+  },
+  actionBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#0a7ea4",
+  },
+  actionBtnDelete: {
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+  },
+  actionBtnDeleteText: {
+    color: "#ef4444",
+  },
+  empty: { alignItems: "center", paddingVertical: 60, gap: 12 },
   emptyText: { fontSize: 14, color: "#6b7280" },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+    paddingVertical: 8,
+    backgroundColor: "#0f1117",
+  },
+  pageBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#1a1d27",
+    borderWidth: 1,
+    borderColor: "#2a2d37",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  pageBtnDisabled: {
+    opacity: 0.5,
+  },
+  pageInfo: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#8b9098",
+  },
   footer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: "#1a1d27",
     borderTopWidth: 1,
@@ -181,9 +692,12 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: "#0a7ea4",
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: 14,
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
+    gap: 8,
   },
-  addButtonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+  addButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 });

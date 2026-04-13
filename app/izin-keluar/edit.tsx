@@ -4,8 +4,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -28,10 +28,12 @@ const calcDurasiMinutes = (keluar: Date, masuk: Date): number => {
   return Math.max(0, Math.round(diffMs / 60000));
 };
 
-export default function AddIzinKeluar() {
+export default function EditIzinKeluar() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const [date, setDate] = useState(new Date());
   const [jamKeluar, setJamKeluar] = useState(new Date());
@@ -41,6 +43,40 @@ export default function AddIzinKeluar() {
   const [showMasukPicker, setShowMasukPicker] = useState(false);
   const [nama, setNama] = useState("");
   const [keperluan, setKeperluan] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data: row, error } = await supabase
+        .from("izin_keluar")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !row) {
+        Alert.alert("Error", "Data tidak ditemukan");
+        router.back();
+        return;
+      }
+
+      const [year, month, day] = row.tanggal.split("-").map(Number);
+      setDate(new Date(year, month - 1, day));
+
+      const [kH, kM] = row.jam_keluar.split(":").map(Number);
+      const kDate = new Date();
+      kDate.setHours(kH, kM, 0, 0);
+      setJamKeluar(kDate);
+
+      const [mH, mM] = row.jam_masuk.split(":").map(Number);
+      const mDate = new Date();
+      mDate.setHours(mH, mM, 0, 0);
+      setJamMasuk(mDate);
+
+      setNama(row.nama ?? "");
+      setKeperluan(row.keperluan ?? "");
+      setFetching(false);
+    })();
+  }, [id]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -79,25 +115,40 @@ export default function AddIzinKeluar() {
     }
 
     setLoading(true);
-    const { error } = await supabase.from("izin_keluar").insert({
-      tanggal: formatDate(date),
-      nama: nama.trim(),
-      keperluan: keperluan.trim(),
-      jam_keluar: formatTime(jamKeluar),
-      jam_masuk: formatTime(jamMasuk),
-      durasi_keluar: durasi,
-      sekuriti_id: profileId,
-    });
+    const { error } = await supabase
+      .from("izin_keluar")
+      .update({
+        tanggal: formatDate(date),
+        nama: nama.trim(),
+        keperluan: keperluan.trim(),
+        jam_keluar: formatTime(jamKeluar),
+        jam_masuk: formatTime(jamMasuk),
+        durasi_keluar: durasi,
+      })
+      .eq("id", id);
+
     setLoading(false);
 
     if (error) {
       Alert.alert("Gagal", error.message);
     } else {
-      Alert.alert("Berhasil", "Data berhasil ditambahkan", [
+      Alert.alert("Berhasil", "Data berhasil diperbarui", [
         { text: "OK", onPress: () => router.back() },
       ]);
     }
   };
+
+  if (fetching) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -105,7 +156,7 @@ export default function AddIzinKeluar() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Izin Keluar</Text>
+        <Text style={styles.headerTitle}>Edit Izin Keluar</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -268,7 +319,7 @@ export default function AddIzinKeluar() {
                   size={20}
                   color="#fff"
                 />
-                <Text style={styles.submitText}>Simpan</Text>
+                <Text style={styles.submitText}>Simpan Perubahan</Text>
               </View>
             )}
           </TouchableOpacity>
