@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,9 +16,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function AddListMobil() {
+export default function EditListMobil() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const [nomorPlat, setNomorPlat] = useState("");
   const [brand, setBrand] = useState("");
@@ -26,30 +28,67 @@ export default function AddListMobil() {
   const [tipe, setTipe] = useState("");
   const [warna, setWarna] = useState("");
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data, error } = await supabase
+        .from("list_mobil")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !data) {
+        Alert.alert("Error", "Gagal memuat data mobil");
+        router.back();
+        return;
+      }
+
+      setNomorPlat(data.nomor_plat || "");
+      setBrand(data.brand || "");
+      setNama(data.nama || "");
+      setTipe(data.tipe || "");
+      setWarna(data.warna || "");
+      setLoading(false);
+    };
+    fetchData();
+  }, [id]);
+
   const handleSubmit = async () => {
     if (!nomorPlat || !brand || !nama || !tipe || !warna) {
       Alert.alert("Error", "Harap isi semua field");
       return;
     }
 
-    setLoading(true);
-    const { error } = await supabase.from("list_mobil").insert({
-      nomor_plat: nomorPlat.trim(),
-      brand: brand.trim(),
-      nama: nama.trim(),
-      tipe: tipe.trim(),
-      warna: warna.trim(),
-    });
-    setLoading(false);
+    setSaving(true);
+    const { error } = await supabase
+      .from("list_mobil")
+      .update({
+        nomor_plat: nomorPlat.trim(),
+        brand: brand.trim(),
+        nama: nama.trim(),
+        tipe: tipe.trim(),
+        warna: warna.trim(),
+      })
+      .eq("id", id);
+    setSaving(false);
 
     if (error) {
       Alert.alert("Gagal", error.message);
     } else {
-      Alert.alert("Berhasil", "Mobil berhasil ditambahkan", [
+      Alert.alert("Berhasil", "Data mobil berhasil diperbarui", [
         { text: "OK", onPress: () => router.back() },
       ]);
     }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,7 +96,7 @@ export default function AddListMobil() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Mobil</Text>
+        <Text style={styles.headerTitle}>Edit Mobil</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -165,12 +204,12 @@ export default function AddListMobil() {
           </View>
 
           <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitDisabled]}
+            style={[styles.submitButton, saving && styles.submitDisabled]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={saving}
             activeOpacity={0.8}
           >
-            {loading ? (
+            {saving ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <View style={styles.submitInner}>
@@ -179,7 +218,7 @@ export default function AddListMobil() {
                   size={20}
                   color="#fff"
                 />
-                <Text style={styles.submitText}>Simpan</Text>
+                <Text style={styles.submitText}>Simpan Perubahan</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -191,6 +230,7 @@ export default function AddListMobil() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f1117" },
+  loadingWrap: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
