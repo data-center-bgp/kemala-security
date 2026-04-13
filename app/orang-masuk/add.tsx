@@ -1,5 +1,6 @@
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -24,7 +25,7 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 
 export default function AddOrangMasuk() {
   const router = useRouter();
-  const { user, profileId } = useAuth();
+  const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [date, setDate] = useState(new Date());
@@ -74,11 +75,11 @@ export default function AddOrangMasuk() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.title}>Tambah Orang Masuk</Text>
-        <View style={{ width: 50 }} />
+        <Text style={styles.headerTitle}>Tambah Orang Masuk</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -86,15 +87,34 @@ export default function AddOrangMasuk() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.form}>
-          <View style={styles.row}>
-            <View style={styles.halfField}>
-              <Text style={styles.label}>Tanggal</Text>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowDatePicker(true)}
-              >
-                <Text style={styles.inputText}>{formatDate(date)}</Text>
-              </TouchableOpacity>
+          {/* Date & Time Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Waktu Pencatatan</Text>
+            <View style={styles.sectionCard}>
+              <View style={styles.row}>
+                <TouchableOpacity
+                  style={styles.dateBtn}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <MaterialCommunityIcons
+                    name="calendar"
+                    size={18}
+                    color="#0a7ea4"
+                  />
+                  <Text style={styles.dateBtnText}>{formatDate(date)}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.dateBtn}
+                  onPress={() => setShowTimePicker(true)}
+                >
+                  <MaterialCommunityIcons
+                    name="clock-outline"
+                    size={18}
+                    color="#0a7ea4"
+                  />
+                  <Text style={styles.dateBtnText}>{formatTime(time)}</Text>
+                </TouchableOpacity>
+              </View>
               {showDatePicker && (
                 <DateTimePicker
                   value={date}
@@ -102,15 +122,6 @@ export default function AddOrangMasuk() {
                   onChange={onDateChange}
                 />
               )}
-            </View>
-            <View style={styles.halfField}>
-              <Text style={styles.label}>Waktu</Text>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowTimePicker(true)}
-              >
-                <Text style={styles.inputText}>{formatTime(time)}</Text>
-              </TouchableOpacity>
               {showTimePicker && (
                 <DateTimePicker
                   value={time}
@@ -122,50 +133,82 @@ export default function AddOrangMasuk() {
             </View>
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Nama</Text>
-            <TextInput
-              style={styles.input}
-              value={nama}
-              onChangeText={setNama}
-              placeholder="Nama pengunjung"
-              placeholderTextColor="#6b7280"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Asal</Text>
-            <TextInput
-              style={styles.input}
-              value={asal}
-              onChangeText={setAsal}
-              placeholder="Asal / instansi"
-              placeholderTextColor="#6b7280"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Keperluan</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={keperluan}
-              onChangeText={setKeperluan}
-              placeholder="Tujuan / keperluan"
-              placeholderTextColor="#6b7280"
-              multiline
-              numberOfLines={3}
-            />
+          {/* Info Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Informasi Pengunjung</Text>
+            <View style={styles.sectionCard}>
+              <View style={styles.inputGroup}>
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="account"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={nama}
+                  onChangeText={setNama}
+                  placeholder="Nama pengunjung"
+                  placeholderTextColor="#4b5060"
+                />
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.inputGroup}>
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="office-building"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={asal}
+                  onChangeText={setAsal}
+                  placeholder="Asal / instansi"
+                  placeholderTextColor="#4b5060"
+                />
+              </View>
+              <View style={styles.divider} />
+              <View style={[styles.inputGroup, { alignItems: "flex-start" }]}>
+                <View style={[styles.inputIcon, { marginTop: 12 }]}>
+                  <MaterialCommunityIcons
+                    name="text-box-outline"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={keperluan}
+                  onChangeText={setKeperluan}
+                  placeholder="Tujuan / keperluan"
+                  placeholderTextColor="#4b5060"
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+            </View>
           </View>
 
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitDisabled]}
             onPress={handleSubmit}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.submitText}>Simpan</Text>
+              <View style={styles.submitInner}>
+                <MaterialCommunityIcons
+                  name="check-circle"
+                  size={20}
+                  color="#fff"
+                />
+                <Text style={styles.submitText}>Simpan Data</Text>
+              </View>
             )}
           </TouchableOpacity>
         </ScrollView>
@@ -178,52 +221,92 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f1117" },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
     borderBottomColor: "#2a2d37",
   },
-  backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
-  form: { padding: 20, gap: 18 },
-  row: { flexDirection: "row", gap: 12 },
-  halfField: { flex: 1 },
-  field: {},
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#c0c4cc",
-    marginBottom: 6,
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#252830",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#e8eaed",
+    textAlign: "center",
+  },
+  form: { padding: 16, gap: 20, paddingBottom: 32 },
+  section: { gap: 8 },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
     marginLeft: 4,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#3a3d47",
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+  sectionCard: {
     backgroundColor: "#1a1d27",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#2a2d37",
+    overflow: "hidden",
+  },
+  row: { flexDirection: "row", gap: 1, backgroundColor: "#252830" },
+  dateBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: "#1a1d27",
+  },
+  dateBtnText: { fontSize: 15, color: "#e8eaed", fontWeight: "600" },
+  inputGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  inputIcon: {
+    width: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingRight: 16,
+    fontSize: 15,
     color: "#e8eaed",
   },
-  inputText: {
-    fontSize: 16,
-    color: "#e8eaed",
+  divider: {
+    height: 1,
+    backgroundColor: "#252830",
+    marginLeft: 44,
   },
   textArea: {
     textAlignVertical: "top",
-    minHeight: 80,
+    minHeight: 72,
   },
   submitButton: {
     backgroundColor: "#0a7ea4",
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
-    marginTop: 8,
   },
   submitDisabled: { opacity: 0.7 },
+  submitInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

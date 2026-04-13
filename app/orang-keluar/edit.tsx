@@ -4,8 +4,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -23,10 +23,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
 const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 
-export default function AddOrangKeluar() {
+export default function EditOrangKeluar() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
@@ -34,6 +36,33 @@ export default function AddOrangKeluar() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [nama, setNama] = useState("");
   const [keterangan, setKeterangan] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data: row, error } = await supabase
+        .from("orang_keluar")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !row) {
+        Alert.alert("Error", "Data tidak ditemukan");
+        router.back();
+        return;
+      }
+
+      const [year, month, day] = row.tanggal.split("-").map(Number);
+      setDate(new Date(year, month - 1, day));
+      const [hours, minutes] = row.waktu.split(":").map(Number);
+      const t = new Date();
+      t.setHours(hours, minutes, 0, 0);
+      setTime(t);
+      setNama(row.nama ?? "");
+      setKeterangan(row.keterangan ?? "");
+      setFetching(false);
+    })();
+  }, [id]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -52,23 +81,38 @@ export default function AddOrangKeluar() {
     }
 
     setLoading(true);
-    const { error } = await supabase.from("orang_keluar").insert({
-      tanggal: formatDate(date),
-      waktu: formatTime(time),
-      nama: nama.trim(),
-      keterangan: keterangan.trim(),
-      sekuriti_id: profileId,
-    });
+    const { error } = await supabase
+      .from("orang_keluar")
+      .update({
+        tanggal: formatDate(date),
+        waktu: formatTime(time),
+        nama: nama.trim(),
+        keterangan: keterangan.trim(),
+      })
+      .eq("id", id);
+
     setLoading(false);
 
     if (error) {
       Alert.alert("Gagal", error.message);
     } else {
-      Alert.alert("Berhasil", "Data berhasil ditambahkan", [
+      Alert.alert("Berhasil", "Data berhasil diperbarui", [
         { text: "OK", onPress: () => router.back() },
       ]);
     }
   };
+
+  if (fetching) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,7 +120,7 @@ export default function AddOrangKeluar() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Orang Keluar</Text>
+        <Text style={styles.headerTitle}>Edit Orang Keluar</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -188,7 +232,7 @@ export default function AddOrangKeluar() {
                   size={20}
                   color="#fff"
                 />
-                <Text style={styles.submitText}>Simpan Data</Text>
+                <Text style={styles.submitText}>Simpan Perubahan</Text>
               </View>
             )}
           </TouchableOpacity>

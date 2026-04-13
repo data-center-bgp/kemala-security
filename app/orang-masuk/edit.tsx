@@ -4,8 +4,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -23,17 +23,48 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
 const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 
-export default function AddOrangKeluar() {
+export default function EditOrangMasuk() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [nama, setNama] = useState("");
-  const [keterangan, setKeterangan] = useState("");
+  const [asal, setAsal] = useState("");
+  const [keperluan, setKeperluan] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data: row, error } = await supabase
+        .from("orang_masuk")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !row) {
+        Alert.alert("Error", "Data tidak ditemukan");
+        router.back();
+        return;
+      }
+
+      const [year, month, day] = row.tanggal.split("-").map(Number);
+      setDate(new Date(year, month - 1, day));
+      const [hours, minutes] = row.waktu.split(":").map(Number);
+      const t = new Date();
+      t.setHours(hours, minutes, 0, 0);
+      setTime(t);
+      setNama(row.nama ?? "");
+      setAsal(row.asal ?? "");
+      setKeperluan(row.keperluan ?? "");
+      setFetching(false);
+    })();
+  }, [id]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -46,29 +77,45 @@ export default function AddOrangKeluar() {
   };
 
   const handleSubmit = async () => {
-    if (!nama || !keterangan) {
+    if (!nama || !asal || !keperluan) {
       Alert.alert("Error", "Harap isi semua field");
       return;
     }
 
     setLoading(true);
-    const { error } = await supabase.from("orang_keluar").insert({
-      tanggal: formatDate(date),
-      waktu: formatTime(time),
-      nama: nama.trim(),
-      keterangan: keterangan.trim(),
-      sekuriti_id: profileId,
-    });
+    const { error } = await supabase
+      .from("orang_masuk")
+      .update({
+        tanggal: formatDate(date),
+        waktu: formatTime(time),
+        nama: nama.trim(),
+        asal: asal.trim(),
+        keperluan: keperluan.trim(),
+      })
+      .eq("id", id);
+
     setLoading(false);
 
     if (error) {
       Alert.alert("Gagal", error.message);
     } else {
-      Alert.alert("Berhasil", "Data berhasil ditambahkan", [
+      Alert.alert("Berhasil", "Data berhasil diperbarui", [
         { text: "OK", onPress: () => router.back() },
       ]);
     }
   };
+
+  if (fetching) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,7 +123,7 @@ export default function AddOrangKeluar() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Orang Keluar</Text>
+        <Text style={styles.headerTitle}>Edit Orang Masuk</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -133,7 +180,7 @@ export default function AddOrangKeluar() {
 
           {/* Info Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Informasi</Text>
+            <Text style={styles.sectionLabel}>Informasi Pengunjung</Text>
             <View style={styles.sectionCard}>
               <View style={styles.inputGroup}>
                 <View style={styles.inputIcon}>
@@ -147,7 +194,24 @@ export default function AddOrangKeluar() {
                   style={styles.input}
                   value={nama}
                   onChangeText={setNama}
-                  placeholder="Nama orang keluar"
+                  placeholder="Nama pengunjung"
+                  placeholderTextColor="#4b5060"
+                />
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.inputGroup}>
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="office-building"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={asal}
+                  onChangeText={setAsal}
+                  placeholder="Asal / instansi"
                   placeholderTextColor="#4b5060"
                 />
               </View>
@@ -162,9 +226,9 @@ export default function AddOrangKeluar() {
                 </View>
                 <TextInput
                   style={[styles.input, styles.textArea]}
-                  value={keterangan}
-                  onChangeText={setKeterangan}
-                  placeholder="Keterangan"
+                  value={keperluan}
+                  onChangeText={setKeperluan}
+                  placeholder="Tujuan / keperluan"
                   placeholderTextColor="#4b5060"
                   multiline
                   numberOfLines={3}
@@ -188,7 +252,7 @@ export default function AddOrangKeluar() {
                   size={20}
                   color="#fff"
                 />
-                <Text style={styles.submitText}>Simpan Data</Text>
+                <Text style={styles.submitText}>Simpan Perubahan</Text>
               </View>
             )}
           </TouchableOpacity>
