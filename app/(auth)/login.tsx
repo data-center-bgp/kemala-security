@@ -1,9 +1,11 @@
 import { useAuth } from "@/context/auth";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -13,11 +15,23 @@ import {
   View,
 } from "react-native";
 
+const GOLD = "#c9a96e";
+const GOLD_LIGHT = "#e2cfa0";
+const GOLD_DIM = "#8a7345";
+const GOLD_MUTED = "rgba(201, 169, 110, 0.12)";
+const DARK = "#0c0c0f";
+const SURFACE = "#151518";
+const SURFACE_LIGHT = "#1c1c20";
+const BORDER = "#2a2820";
+const TEXT_PRIMARY = "#f0ece4";
+const TEXT_SECONDARY = "#9a9080";
+
 export default function LoginScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [secureEntry, setSecureEntry] = useState(true);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -40,34 +54,43 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.inner}>
-        <View style={styles.logoContainer}>
+        {/* Logo section */}
+        <View style={styles.logoSection}>
           <View style={styles.logoGlow}>
-            <View style={styles.logoCircle}>
-              <MaterialCommunityIcons
-                name="shield-check"
-                size={36}
-                color="#fff"
-              />
-            </View>
+            <Image
+              source={require("@/assets/images/icon-kemala-security.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
-          <Text style={styles.title}>Kemala Security</Text>
-          <Text style={styles.subtitle}>Sistem Pencatatan Keamanan</Text>
+          <Text style={styles.brandName}>KEMALA SECURITY</Text>
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <MaterialCommunityIcons
+              name="diamond-stone"
+              size={10}
+              color={GOLD_DIM}
+            />
+            <View style={styles.dividerLine} />
+          </View>
+          <Text style={styles.tagline}>Sistem Pencatatan Keamanan</Text>
         </View>
 
+        {/* Form card */}
         <View style={styles.card}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputWrapper}>
               <MaterialCommunityIcons
                 name="email-outline"
-                size={20}
-                color="#6b7280"
+                size={18}
+                color={GOLD_DIM}
                 style={styles.inputIcon}
               />
               <TextInput
                 style={styles.input}
                 placeholder="you@company.com"
-                placeholderTextColor="#4b5060"
+                placeholderTextColor="#4a453a"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -83,41 +106,59 @@ export default function LoginScreen() {
             <View style={styles.inputWrapper}>
               <MaterialCommunityIcons
                 name="lock-outline"
-                size={20}
-                color="#6b7280"
+                size={18}
+                color={GOLD_DIM}
                 style={styles.inputIcon}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Enter your password"
-                placeholderTextColor="#4b5060"
+                placeholderTextColor="#4a453a"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={secureEntry}
                 textContentType="password"
                 autoComplete="password"
               />
+              <TouchableOpacity
+                onPress={() => setSecureEntry(!secureEntry)}
+                style={styles.eyeBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <MaterialCommunityIcons
+                  name={secureEntry ? "eye-off-outline" : "eye-outline"}
+                  size={18}
+                  color={GOLD_DIM}
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={loading}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
+            style={[loading && styles.buttonDisabled]}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <View style={styles.buttonInner}>
-                <Text style={styles.buttonText}>Sign In</Text>
-                <MaterialCommunityIcons
-                  name="arrow-right"
-                  size={20}
-                  color="#fff"
-                />
-              </View>
-            )}
+            <LinearGradient
+              colors={["#c9a96e", "#a8893f"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.button}
+            >
+              {loading ? (
+                <ActivityIndicator color={DARK} />
+              ) : (
+                <View style={styles.buttonInner}>
+                  <Text style={styles.buttonText}>Sign In</Text>
+                  <MaterialCommunityIcons
+                    name="arrow-right"
+                    size={18}
+                    color={DARK}
+                  />
+                </View>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -132,73 +173,84 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f1117",
+    backgroundColor: DARK,
   },
   inner: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
   },
-  logoContainer: {
+  logoSection: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 36,
   },
   logoGlow: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: "rgba(10, 126, 164, 0.15)",
+    width: 120,
+    height: 120,
+    borderRadius: 28,
+    backgroundColor: GOLD_MUTED,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(201, 169, 110, 0.2)",
   },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#0a7ea4",
-    justifyContent: "center",
-    alignItems: "center",
+  logo: {
+    width: 96,
+    height: 96,
+    borderRadius: 18,
   },
-  title: {
-    fontSize: 24,
+  brandName: {
+    fontSize: 22,
     fontWeight: "800",
-    color: "#e8eaed",
+    color: GOLD_LIGHT,
     textAlign: "center",
-    letterSpacing: 0.3,
+    letterSpacing: 4,
   },
-  subtitle: {
-    fontSize: 14,
-    color: "#6b7280",
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginVertical: 10,
+  },
+  dividerLine: {
+    width: 40,
+    height: 1,
+    backgroundColor: GOLD_DIM,
+    opacity: 0.4,
+  },
+  tagline: {
+    fontSize: 13,
+    color: TEXT_SECONDARY,
     textAlign: "center",
-    marginTop: 4,
+    letterSpacing: 1,
   },
   card: {
-    backgroundColor: "#1a1d27",
-    borderRadius: 16,
-    padding: 20,
-    gap: 18,
+    backgroundColor: SURFACE,
+    borderRadius: 18,
+    padding: 22,
+    gap: 20,
     borderWidth: 1,
-    borderColor: "#2a2d37",
+    borderColor: BORDER,
   },
   inputContainer: {
-    gap: 6,
+    gap: 8,
   },
   label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#8b9098",
+    fontSize: 11,
+    fontWeight: "700",
+    color: GOLD_DIM,
     marginLeft: 4,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 1.2,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#2a2d37",
-    borderRadius: 10,
-    backgroundColor: "#0f1117",
+    borderColor: BORDER,
+    borderRadius: 12,
+    backgroundColor: SURFACE_LIGHT,
   },
   inputIcon: {
     paddingLeft: 14,
@@ -206,20 +258,21 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingHorizontal: 12,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: "#e8eaed",
+    paddingVertical: 15,
+    fontSize: 15,
+    color: TEXT_PRIMARY,
+  },
+  eyeBtn: {
+    paddingRight: 14,
   },
   button: {
-    backgroundColor: "#0a7ea4",
-    borderRadius: 10,
-    paddingVertical: 15,
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: "center",
-    marginTop: 4,
-    shadowColor: "#0a7ea4",
+    shadowColor: GOLD,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 6,
   },
   buttonDisabled: {
@@ -231,14 +284,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: "#fff",
+    color: DARK,
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   helpText: {
-    color: "#4b5060",
-    fontSize: 13,
+    color: TEXT_SECONDARY,
+    fontSize: 12,
     textAlign: "center",
-    marginTop: 24,
+    marginTop: 28,
+    letterSpacing: 0.3,
   },
 });
