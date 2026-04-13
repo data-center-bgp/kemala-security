@@ -1,5 +1,6 @@
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -176,11 +177,11 @@ export default function AddBarangMasuk() {
       </Modal>
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#0a7ea4" />
         </TouchableOpacity>
-        <Text style={styles.title}>Tambah Barang Masuk</Text>
-        <View style={{ width: 50 }} />
+        <Text style={styles.headerTitle}>Tambah Barang Masuk</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -188,15 +189,34 @@ export default function AddBarangMasuk() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.form}>
-          <View style={styles.row}>
-            <View style={styles.halfField}>
-              <Text style={styles.label}>Tanggal</Text>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowDatePicker(true)}
-              >
-                <Text style={styles.inputText}>{formatDate(date)}</Text>
-              </TouchableOpacity>
+          {/* Date & Time Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Waktu Pencatatan</Text>
+            <View style={styles.sectionCard}>
+              <View style={styles.row}>
+                <TouchableOpacity
+                  style={styles.dateBtn}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <MaterialCommunityIcons
+                    name="calendar"
+                    size={18}
+                    color="#0a7ea4"
+                  />
+                  <Text style={styles.dateBtnText}>{formatDate(date)}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.dateBtn}
+                  onPress={() => setShowTimePicker(true)}
+                >
+                  <MaterialCommunityIcons
+                    name="clock-outline"
+                    size={18}
+                    color="#0a7ea4"
+                  />
+                  <Text style={styles.dateBtnText}>{formatTime(time)}</Text>
+                </TouchableOpacity>
+              </View>
               {showDatePicker && (
                 <DateTimePicker
                   value={date}
@@ -204,15 +224,6 @@ export default function AddBarangMasuk() {
                   onChange={onDateChange}
                 />
               )}
-            </View>
-            <View style={styles.halfField}>
-              <Text style={styles.label}>Waktu</Text>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowTimePicker(true)}
-              >
-                <Text style={styles.inputText}>{formatTime(time)}</Text>
-              </TouchableOpacity>
               {showTimePicker && (
                 <DateTimePicker
                   value={time}
@@ -224,96 +235,171 @@ export default function AddBarangMasuk() {
             </View>
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Pengirim</Text>
-            <TextInput
-              style={styles.input}
-              value={pengirim}
-              onChangeText={setPengirim}
-              placeholder="Nama pengirim"
-              placeholderTextColor="#6b7280"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Penerima</Text>
-            <TextInput
-              style={styles.input}
-              value={penerima}
-              onChangeText={setPenerima}
-              placeholder="Nama penerima"
-              placeholderTextColor="#6b7280"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Barang</Text>
-            <TextInput
-              style={styles.input}
-              value={barang}
-              onChangeText={setBarang}
-              placeholder="Nama barang"
-              placeholderTextColor="#6b7280"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Keterangan</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={keterangan}
-              onChangeText={setKeterangan}
-              placeholder="Keterangan"
-              placeholderTextColor="#6b7280"
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Foto</Text>
-            <View style={styles.photoButtons}>
-              <TouchableOpacity style={styles.photoButton} onPress={takePhoto}>
-                <Text style={styles.photoButtonText}>📷 Kamera</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-                <Text style={styles.photoButtonText}>🖼️ Galeri</Text>
-              </TouchableOpacity>
-            </View>
-            {photos.length > 0 && (
-              <View style={styles.photoRow}>
-                {photos.map((photo, index) => (
-                  <View key={index} style={styles.photoThumbContainer}>
-                    <TouchableOpacity
-                      onPress={() => setPreviewImage(photo.uri)}
-                      activeOpacity={0.8}
-                    >
-                      <Image
-                        source={{ uri: photo.uri }}
-                        style={styles.photoImage}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.photoRemove}
-                      onPress={() => removePhoto(index)}
-                    >
-                      <Text style={styles.photoRemoveText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
+          {/* Info Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Informasi Barang</Text>
+            <View style={styles.sectionCard}>
+              <View style={styles.inputGroup}>
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="account-arrow-right"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={pengirim}
+                  onChangeText={setPengirim}
+                  placeholder="Nama pengirim"
+                  placeholderTextColor="#4b5060"
+                />
               </View>
-            )}
+              <View style={styles.divider} />
+              <View style={styles.inputGroup}>
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="account-check"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={penerima}
+                  onChangeText={setPenerima}
+                  placeholder="Nama penerima"
+                  placeholderTextColor="#4b5060"
+                />
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.inputGroup}>
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="package-variant-closed"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={barang}
+                  onChangeText={setBarang}
+                  placeholder="Nama barang"
+                  placeholderTextColor="#4b5060"
+                />
+              </View>
+              <View style={styles.divider} />
+              <View style={[styles.inputGroup, { alignItems: "flex-start" }]}>
+                <View style={[styles.inputIcon, { marginTop: 12 }]}>
+                  <MaterialCommunityIcons
+                    name="text-box-outline"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={keterangan}
+                  onChangeText={setKeterangan}
+                  placeholder="Keterangan"
+                  placeholderTextColor="#4b5060"
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Photo Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Dokumentasi Foto</Text>
+            <View style={styles.sectionCard}>
+              <View style={styles.photoActions}>
+                <TouchableOpacity
+                  style={styles.photoBtn}
+                  onPress={takePhoto}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons
+                    name="camera"
+                    size={22}
+                    color="#0a7ea4"
+                  />
+                  <Text style={styles.photoBtnText}>Kamera</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.photoBtn}
+                  onPress={pickImage}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons
+                    name="image-multiple"
+                    size={22}
+                    color="#0a7ea4"
+                  />
+                  <Text style={styles.photoBtnText}>Galeri</Text>
+                </TouchableOpacity>
+              </View>
+              {photos.length > 0 && (
+                <View style={styles.photoGrid}>
+                  {photos.map((photo, index) => (
+                    <View key={index} style={styles.photoThumbWrap}>
+                      <TouchableOpacity
+                        onPress={() => setPreviewImage(photo.uri)}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{ uri: photo.uri }}
+                          style={styles.photoImage}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.photoRemove}
+                        onPress={() => removePhoto(index)}
+                      >
+                        <MaterialCommunityIcons
+                          name="close"
+                          size={14}
+                          color="#fff"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {photos.length === 0 && (
+                <View style={styles.photoEmpty}>
+                  <MaterialCommunityIcons
+                    name="image-off-outline"
+                    size={32}
+                    color="#3a3d47"
+                  />
+                  <Text style={styles.photoEmptyText}>
+                    Belum ada foto ditambahkan
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitDisabled]}
             onPress={handleSubmit}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.submitText}>Simpan</Text>
+              <View style={styles.submitInner}>
+                <MaterialCommunityIcons
+                  name="check-circle"
+                  size={20}
+                  color="#fff"
+                />
+                <Text style={styles.submitText}>Simpan Data</Text>
+              </View>
             )}
           </TouchableOpacity>
         </ScrollView>
@@ -326,66 +412,108 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f1117" },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#1a1d27",
     borderBottomWidth: 1,
     borderBottomColor: "#2a2d37",
   },
-  backButton: { fontSize: 15, color: "#0a7ea4", fontWeight: "600" },
-  title: { fontSize: 18, fontWeight: "700", color: "#e8eaed" },
-  form: { padding: 20, gap: 18 },
-  row: { flexDirection: "row", gap: 12 },
-  halfField: { flex: 1 },
-  field: {},
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#c0c4cc",
-    marginBottom: 6,
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#252830",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#e8eaed",
+    textAlign: "center",
+  },
+  form: { padding: 16, gap: 20, paddingBottom: 32 },
+  section: { gap: 8 },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
     marginLeft: 4,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#3a3d47",
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+  sectionCard: {
     backgroundColor: "#1a1d27",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#2a2d37",
+    overflow: "hidden",
+  },
+  row: { flexDirection: "row", gap: 1, backgroundColor: "#252830" },
+  dateBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: "#1a1d27",
+  },
+  dateBtnText: { fontSize: 15, color: "#e8eaed", fontWeight: "600" },
+  inputGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  inputIcon: {
+    width: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingRight: 16,
+    fontSize: 15,
     color: "#e8eaed",
   },
-  inputText: {
-    fontSize: 16,
-    color: "#e8eaed",
+  divider: {
+    height: 1,
+    backgroundColor: "#252830",
+    marginLeft: 44,
   },
   textArea: {
     textAlignVertical: "top",
-    minHeight: 80,
+    minHeight: 72,
   },
-  submitButton: {
-    backgroundColor: "#0a7ea4",
-    borderRadius: 10,
-    paddingVertical: 16,
+  photoActions: {
+    flexDirection: "row",
+    gap: 1,
+    backgroundColor: "#252830",
+  },
+  photoBtn: {
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: "#1a1d27",
   },
-  submitDisabled: { opacity: 0.7 },
-  submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  photoRow: {
+  photoBtnText: { fontSize: 14, fontWeight: "600", color: "#c0c4cc" },
+  photoGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginTop: 12,
+    padding: 14,
   },
-  photoThumbContainer: { position: "relative" },
+  photoThumbWrap: { position: "relative" },
   photoImage: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
     borderRadius: 10,
-    backgroundColor: "#2a2d37",
+    backgroundColor: "#252830",
   },
   photoRemove: {
     position: "absolute",
@@ -398,18 +526,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  photoRemoveText: { color: "#fff", fontSize: 12, fontWeight: "700" },
-  photoButtons: { flexDirection: "row", gap: 12 },
-  photoButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#3a3d47",
-    borderRadius: 10,
-    paddingVertical: 12,
+  photoEmpty: {
     alignItems: "center",
-    backgroundColor: "#1a1d27",
+    paddingVertical: 24,
+    gap: 8,
   },
-  photoButtonText: { fontSize: 14, fontWeight: "600", color: "#c0c4cc" },
+  photoEmptyText: { fontSize: 13, color: "#4b5060" },
+  submitButton: {
+    backgroundColor: "#0a7ea4",
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  submitDisabled: { opacity: 0.7 },
+  submitInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.92)",
@@ -421,7 +556,7 @@ const styles = StyleSheet.create({
     top: 50,
     right: 20,
     zIndex: 10,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(255,255,255,0.15)",
     borderRadius: 20,
     width: 40,
     height: 40,
