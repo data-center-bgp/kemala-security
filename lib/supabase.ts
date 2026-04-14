@@ -1,15 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
-import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 import "react-native-url-polyfill/auto";
 
 const ExpoSecureStoreAdapter = {
   getItem(key: string) {
+    if (Platform.OS === "web") return null;
+    const SecureStore = require("expo-secure-store");
     return SecureStore.getItemAsync(key);
   },
   setItem(key: string, value: string) {
+    if (Platform.OS === "web") return;
+    const SecureStore = require("expo-secure-store");
     SecureStore.setItemAsync(key, value);
   },
   removeItem(key: string) {
+    if (Platform.OS === "web") return;
+    const SecureStore = require("expo-secure-store");
     SecureStore.deleteItemAsync(key);
   },
 };
