@@ -1,6 +1,5 @@
-import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
-import { ListMobil } from "@/types/database";
+import { ListMobil, ListSekuriti } from "@/types/database";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -28,7 +27,6 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 
 export default function AddPemakaianMobil() {
   const router = useRouter();
-  const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [date, setDate] = useState(new Date());
@@ -40,6 +38,11 @@ export default function AddPemakaianMobil() {
   const [showMobilPicker, setShowMobilPicker] = useState(false);
   const [namaPeminjam, setNamaPeminjam] = useState("");
   const [keperluan, setKeperluan] = useState("");
+  const [sekuritiList, setSekuritiList] = useState<ListSekuriti[]>([]);
+  const [selectedSekuriti, setSelectedSekuriti] = useState<ListSekuriti | null>(
+    null,
+  );
+  const [showSekuritiPicker, setShowSekuritiPicker] = useState(false);
 
   const fetchMobil = useCallback(async () => {
     const { data, error } = await supabase
@@ -52,9 +55,19 @@ export default function AddPemakaianMobil() {
     }
   }, []);
 
+  const fetchSekuriti = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("list_sekuriti")
+      .select("*")
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+    if (!error && data) setSekuritiList(data as ListSekuriti[]);
+  }, []);
+
   useEffect(() => {
     fetchMobil();
-  }, [fetchMobil]);
+    fetchSekuriti();
+  }, [fetchMobil, fetchSekuriti]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -67,7 +80,7 @@ export default function AddPemakaianMobil() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedMobil || !namaPeminjam || !keperluan) {
+    if (!selectedMobil || !namaPeminjam || !keperluan || !selectedSekuriti) {
       Alert.alert("Error", "Harap isi semua field");
       return;
     }
@@ -79,7 +92,7 @@ export default function AddPemakaianMobil() {
       mobil_id: selectedMobil.id,
       nama_peminjam: namaPeminjam.trim(),
       keperluan: keperluan.trim(),
-      sekuriti_id: profileId,
+      sekuriti_id: selectedSekuriti.id,
     });
     setLoading(false);
 
@@ -230,6 +243,39 @@ export default function AddPemakaianMobil() {
             </View>
           </View>
 
+          {/* Sekuriti Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Petugas Sekuriti</Text>
+            <View style={styles.sectionCard}>
+              <TouchableOpacity
+                style={styles.sekuritiSelectBtn}
+                onPress={() => setShowSekuritiPicker(true)}
+              >
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="shield-account"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.sekuritiSelectText,
+                    !selectedSekuriti && styles.sekuritiSelectPlaceholder,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {selectedSekuriti ? selectedSekuriti.name : "Pilih sekuriti"}
+                </Text>
+                <MaterialCommunityIcons
+                  name="chevron-down"
+                  size={20}
+                  color="#6b7280"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitDisabled]}
             onPress={handleSubmit}
@@ -311,6 +357,74 @@ export default function AddPemakaianMobil() {
                         </Text>
                       </View>
                       {selectedMobil?.id === item.id && (
+                        <MaterialCommunityIcons
+                          name="check-circle"
+                          size={20}
+                          color="#0a7ea4"
+                        />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Sekuriti Picker Modal */}
+      <Modal visible={showSekuritiPicker} animationType="slide" transparent>
+        <View style={styles.sekuritiModalOverlay}>
+          <View style={styles.sekuritiModalContent}>
+            <View style={styles.sekuritiModalHeader}>
+              <Text style={styles.sekuritiModalTitle}>Pilih Sekuriti</Text>
+              <TouchableOpacity onPress={() => setShowSekuritiPicker(false)}>
+                <MaterialCommunityIcons
+                  name="close"
+                  size={22}
+                  color="#8b9098"
+                />
+              </TouchableOpacity>
+            </View>
+            {sekuritiList.length === 0 ? (
+              <View style={styles.sekuritiModalEmpty}>
+                <MaterialCommunityIcons
+                  name="shield-off-outline"
+                  size={40}
+                  color="#2a2d37"
+                />
+                <Text style={styles.sekuritiModalEmptyText}>
+                  Belum ada data sekuriti.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={sekuritiList}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.sekuritiOption,
+                      selectedSekuriti?.id === item.id &&
+                        styles.sekuritiOptionSelected,
+                    ]}
+                    onPress={() => {
+                      setSelectedSekuriti(item);
+                      setShowSekuritiPicker(false);
+                    }}
+                  >
+                    <View style={styles.sekuritiOptionRow}>
+                      <MaterialCommunityIcons
+                        name="shield-account"
+                        size={18}
+                        color={
+                          selectedSekuriti?.id === item.id
+                            ? "#0a7ea4"
+                            : "#6b7280"
+                        }
+                      />
+                      <Text style={styles.sekuritiName}>{item.name}</Text>
+                      {selectedSekuriti?.id === item.id && (
                         <MaterialCommunityIcons
                           name="check-circle"
                           size={20}
@@ -484,4 +598,53 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   mobilMeta: { fontSize: 13, color: "#8b9098", marginTop: 2 },
+  sekuritiSelectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 14,
+  },
+  sekuritiSelectText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#e8eaed",
+    paddingVertical: 14,
+  },
+  sekuritiSelectPlaceholder: { color: "#4b5060" },
+  sekuritiModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
+  },
+  sekuritiModalContent: {
+    backgroundColor: "#1a1d27",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "70%",
+    paddingBottom: 30,
+  },
+  sekuritiModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#2a2d37",
+  },
+  sekuritiModalTitle: { fontSize: 17, fontWeight: "700", color: "#e8eaed" },
+  sekuritiModalEmpty: { padding: 40, alignItems: "center", gap: 12 },
+  sekuritiModalEmptyText: {
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
+  },
+  sekuritiOption: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#252830",
+  },
+  sekuritiOptionSelected: { backgroundColor: "rgba(10, 126, 164, 0.08)" },
+  sekuritiOptionRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  sekuritiName: { flex: 1, fontSize: 15, fontWeight: "600", color: "#e8eaed" },
 });

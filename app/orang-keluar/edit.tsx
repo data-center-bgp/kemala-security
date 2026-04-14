@@ -1,4 +1,3 @@
-import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
@@ -26,7 +25,6 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 export default function EditOrangKeluar() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 

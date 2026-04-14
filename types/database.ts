@@ -101,3 +101,11 @@ export type FotoBarangKeluar = {
   created_at?: string;
   deleted_at?: string | null;
 };
+
+export type ListSekuriti = {
+  id: number;
+  name: string;
+  created_at?: string;
+  updated_at?: string | null;
+  deleted_at?: string | null;
+};

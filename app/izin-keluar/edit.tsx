@@ -1,4 +1,3 @@
-import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
@@ -31,7 +30,6 @@ const calcDurasiMinutes = (keluar: Date, masuk: Date): number => {
 export default function EditIzinKeluar() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 

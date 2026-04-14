@@ -1,4 +1,3 @@
-import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
 import { ListMobil } from "@/types/database";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -29,7 +28,6 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 export default function EditPemakaianMobil() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 

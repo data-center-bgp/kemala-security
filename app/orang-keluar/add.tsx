@@ -1,15 +1,17 @@
-import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
+import { ListSekuriti } from "@/types/database";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -25,7 +27,6 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 
 export default function AddOrangKeluar() {
   const router = useRouter();
-  const { profileId } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [date, setDate] = useState(new Date());
@@ -34,6 +35,24 @@ export default function AddOrangKeluar() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [nama, setNama] = useState("");
   const [keterangan, setKeterangan] = useState("");
+  const [sekuritiList, setSekuritiList] = useState<ListSekuriti[]>([]);
+  const [selectedSekuriti, setSelectedSekuriti] = useState<ListSekuriti | null>(
+    null,
+  );
+  const [showSekuritiPicker, setShowSekuritiPicker] = useState(false);
+
+  const fetchSekuriti = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("list_sekuriti")
+      .select("*")
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+    if (!error && data) setSekuritiList(data as ListSekuriti[]);
+  }, []);
+
+  useEffect(() => {
+    fetchSekuriti();
+  }, [fetchSekuriti]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);
@@ -46,7 +65,7 @@ export default function AddOrangKeluar() {
   };
 
   const handleSubmit = async () => {
-    if (!nama || !keterangan) {
+    if (!nama || !keterangan || !selectedSekuriti) {
       Alert.alert("Error", "Harap isi semua field");
       return;
     }
@@ -57,7 +76,7 @@ export default function AddOrangKeluar() {
       waktu: formatTime(time),
       nama: nama.trim(),
       keterangan: keterangan.trim(),
-      sekuriti_id: profileId,
+      sekuriti_id: selectedSekuriti.id,
     });
     setLoading(false);
 
@@ -173,6 +192,39 @@ export default function AddOrangKeluar() {
             </View>
           </View>
 
+          {/* Sekuriti Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Petugas Sekuriti</Text>
+            <View style={styles.sectionCard}>
+              <TouchableOpacity
+                style={styles.sekuritiSelectBtn}
+                onPress={() => setShowSekuritiPicker(true)}
+              >
+                <View style={styles.inputIcon}>
+                  <MaterialCommunityIcons
+                    name="shield-account"
+                    size={18}
+                    color="#6b7280"
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.sekuritiSelectText,
+                    !selectedSekuriti && styles.sekuritiSelectPlaceholder,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {selectedSekuriti ? selectedSekuriti.name : "Pilih sekuriti"}
+                </Text>
+                <MaterialCommunityIcons
+                  name="chevron-down"
+                  size={20}
+                  color="#6b7280"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitDisabled]}
             onPress={handleSubmit}
@@ -194,6 +246,73 @@ export default function AddOrangKeluar() {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={showSekuritiPicker} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Pilih Sekuriti</Text>
+              <TouchableOpacity onPress={() => setShowSekuritiPicker(false)}>
+                <MaterialCommunityIcons
+                  name="close"
+                  size={22}
+                  color="#8b9098"
+                />
+              </TouchableOpacity>
+            </View>
+            {sekuritiList.length === 0 ? (
+              <View style={styles.modalEmpty}>
+                <MaterialCommunityIcons
+                  name="shield-off-outline"
+                  size={40}
+                  color="#2a2d37"
+                />
+                <Text style={styles.modalEmptyText}>
+                  Belum ada data sekuriti.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={sekuritiList}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.sekuritiOption,
+                      selectedSekuriti?.id === item.id &&
+                        styles.sekuritiOptionSelected,
+                    ]}
+                    onPress={() => {
+                      setSelectedSekuriti(item);
+                      setShowSekuritiPicker(false);
+                    }}
+                  >
+                    <View style={styles.sekuritiOptionRow}>
+                      <MaterialCommunityIcons
+                        name="shield-account"
+                        size={18}
+                        color={
+                          selectedSekuriti?.id === item.id
+                            ? "#0a7ea4"
+                            : "#6b7280"
+                        }
+                      />
+                      <Text style={styles.sekuritiName}>{item.name}</Text>
+                      {selectedSekuriti?.id === item.id && (
+                        <MaterialCommunityIcons
+                          name="check-circle"
+                          size={20}
+                          color="#0a7ea4"
+                        />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -290,4 +409,49 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  sekuritiSelectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 14,
+  },
+  sekuritiSelectText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#e8eaed",
+    paddingVertical: 14,
+  },
+  sekuritiSelectPlaceholder: { color: "#4b5060" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#1a1d27",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "70%",
+    paddingBottom: 30,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#2a2d37",
+  },
+  modalTitle: { fontSize: 17, fontWeight: "700", color: "#e8eaed" },
+  modalEmpty: { padding: 40, alignItems: "center", gap: 12 },
+  modalEmptyText: { fontSize: 14, color: "#6b7280", textAlign: "center" },
+  sekuritiOption: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#252830",
+  },
+  sekuritiOptionSelected: { backgroundColor: "rgba(10, 126, 164, 0.08)" },
+  sekuritiOptionRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  sekuritiName: { flex: 1, fontSize: 15, fontWeight: "600", color: "#e8eaed" },
 });
