@@ -41,7 +41,8 @@ export default function ListMobilScreen() {
       .from("list_mobil")
       .select("*")
       .is("deleted_at", null)
-      .order("nama", { ascending: true });
+      .order("nama", { ascending: true })
+      .limit(500);
 
     if (!error && rows) {
       setData(rows as ListMobil[]);

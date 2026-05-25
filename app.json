@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kemala Security App",
     "slug": "kemala-security",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon-kemala-security.png",
     "scheme": "kemalasecurity",
@@ -19,7 +19,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.cga.barokahperkasagroup.kemalasecurity",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "output": "static",

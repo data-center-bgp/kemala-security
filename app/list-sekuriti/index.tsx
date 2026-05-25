@@ -34,7 +34,8 @@ export default function ListSekuritiScreen() {
       .from("list_sekuriti")
       .select("*")
       .is("deleted_at", null)
-      .order("name", { ascending: true });
+      .order("name", { ascending: true })
+      .limit(500);
 
     if (!error && rows) {
       setData(rows as ListSekuriti[]);

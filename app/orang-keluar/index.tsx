@@ -110,7 +110,8 @@ export default function OrangKeluarScreen() {
       .select("*")
       .is("deleted_at", null)
       .order("tanggal", { ascending: false })
-      .order("waktu", { ascending: false });
+      .order("waktu", { ascending: false })
+      .limit(500);
 
     if (!error && rows) {
       setData(rows as OrangKeluar[]);
@@ -250,7 +251,7 @@ export default function OrangKeluarScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ flexGrow: 0 }}
+        style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
         {(["all", "today", "week", "range"] as const).map((key) => {
@@ -453,6 +454,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#e8eaed",
   },
+  filterScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+    minHeight: 44,
+  },
   filterRow: {
     paddingHorizontal: 16,
     paddingTop: 10,
@@ -469,6 +475,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a1d27",
     borderWidth: 1,
     borderColor: "#2a2d37",
+    flexShrink: 0,
   },
   filterChipActive: {
     backgroundColor: "#0a7ea4",

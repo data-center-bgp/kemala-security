@@ -123,28 +123,38 @@ export default function BarangKeluarScreen() {
       .select("*, foto_barang_keluar(*)")
       .is("deleted_at", null)
       .order("tanggal", { ascending: false })
-      .order("waktu", { ascending: false });
+      .order("waktu", { ascending: false })
+      .limit(500);
 
     if (!error && rows) {
-      const rowsWithUrls = await Promise.all(
-        (rows as BarangKeluarWithPhotos[]).map(async (row) => {
-          if (row.foto_barang_keluar?.length) {
-            const photos = await Promise.all(
-              row.foto_barang_keluar.map(async (foto) => {
-                const { data } = await supabase.storage
-                  .from("barang_keluar")
-                  .createSignedUrl(foto.storage_path, 3600);
-                return {
-                  ...foto,
-                  photo_url: data?.signedUrl ?? foto.photo_url,
-                };
-              }),
-            );
-            return { ...row, foto_barang_keluar: photos };
+      const typed = rows as BarangKeluarWithPhotos[];
+      const allPaths: string[] = [];
+      for (const row of typed) {
+        if (row.foto_barang_keluar?.length) {
+          for (const f of row.foto_barang_keluar)
+            allPaths.push(f.storage_path);
+        }
+      }
+      const urlByPath = new Map<string, string>();
+      if (allPaths.length > 0) {
+        const { data: signed } = await supabase.storage
+          .from("barang_keluar")
+          .createSignedUrls(allPaths, 3600);
+        if (signed) {
+          for (const item of signed) {
+            if (item.path && item.signedUrl)
+              urlByPath.set(item.path, item.signedUrl);
           }
-          return row;
-        }),
-      );
+        }
+      }
+      const rowsWithUrls = typed.map((row) => {
+        if (!row.foto_barang_keluar?.length) return row;
+        const photos = row.foto_barang_keluar.map((foto) => ({
+          ...foto,
+          photo_url: urlByPath.get(foto.storage_path) ?? foto.photo_url,
+        }));
+        return { ...row, foto_barang_keluar: photos };
+      });
       setData(rowsWithUrls);
     }
     setLoading(false);
@@ -358,7 +368,7 @@ export default function BarangKeluarScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ flexGrow: 0 }}
+        style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
         {(["all", "today", "week", "range"] as const).map((key) => {
@@ -561,6 +571,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#e8eaed",
   },
+  filterScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+    minHeight: 44,
+  },
   filterRow: {
     paddingHorizontal: 16,
     paddingTop: 10,
@@ -577,6 +592,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a1d27",
     borderWidth: 1,
     borderColor: "#2a2d37",
+    flexShrink: 0,
   },
   filterChipActive: {
     backgroundColor: "#0a7ea4",
