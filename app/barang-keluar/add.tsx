@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -25,7 +26,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const formatDate = (d: Date) => d.toISOString().split("T")[0];
+const formatDate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const formatTime = (d: Date) => d.toTimeString().slice(0, 5);
 
 export default function AddBarangKeluar() {
@@ -60,6 +62,14 @@ export default function AddBarangKeluar() {
   useEffect(() => {
     fetchSekuriti();
   }, [fetchSekuriti]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = new Date();
+      setDate(now);
+      setTime(now);
+    }, []),
+  );
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDatePicker(false);

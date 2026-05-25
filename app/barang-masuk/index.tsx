@@ -44,7 +44,8 @@ export default function BarangMasukScreen() {
   const [showDateTo, setShowDateTo] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
-  const formatDateStr = (d: Date) => d.toISOString().split("T")[0];
+  const formatDateStr = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
   const onDateFromChange = (_e: DateTimePickerEvent, selected?: Date) => {
     setShowDateFrom(false);
